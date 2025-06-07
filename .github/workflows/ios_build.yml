@@ -44,7 +44,7 @@ jobs:
     # 6. Package the .app into an unsigned IPA
     - name: Package unsigned IPA
       run: |
-        BUILD_DIR=build/Release-iphoneos
+        BUILD_DIR=build/Debug-iphoneos
         mkdir -p $BUILD_DIR/Payload
         cp -R $BUILD_DIR/ALAN_ios.app $BUILD_DIR/Payload/
         cd $BUILD_DIR
