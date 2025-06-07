@@ -44,11 +44,14 @@ jobs:
     # 6. Package the .app into an unsigned IPA
     - name: Package unsigned IPA
       run: |
-        cd build/Release-iphoneos
-        ditto -c -k --sequesterRsrc --keepParent ALAN_ios.app ALAN_ios.ipa
+        BUILD_DIR=build/Release-iphoneos
+        mkdir -p $BUILD_DIR/Payload
+        cp -R $BUILD_DIR/ALAN_ios.app $BUILD_DIR/Payload/
+        cd $BUILD_DIR
+        zip -r ALAN_ios.ipa Payload 
         mv ALAN_ios.ipa $GITHUB_WORKSPACE
-
-    # 7. Upload the IPA so you can download it
+        
+    # 7. Upload the IPA to download it
     - name: Upload IPA artifact
       uses: actions/upload-artifact@v4
       with:
