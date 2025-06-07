@@ -25,12 +25,22 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
-	<dict>
-	  <!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->
-		<key>NSAllowsArbitraryLoads</key>
-		<false/>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
+<dict>
+  <!-- allow all HTTP loads (quick & dirty) -->
+  <!-- <key>NSAllowsArbitraryLoads</key>
+  <true/> -->
+  
+  <!-- or, more securely, only allow your Metro host: -->
+  <key>NSExceptionDomains</key>
+  <dict>
+    <key>100.68.78.107</key>
+    <dict>
+      <key>NSExceptionAllowsInsecureHTTPLoads</key>
+      <true/>
+      <key>NSIncludesSubdomains</key>
+      <true/>
+    </dict>
+	</dict>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
