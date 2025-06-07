@@ -1,0 +1,56 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+
+    steps:
+    # 1. Check out your code
+    - uses: actions/checkout@v3
+
+    # 2. Set up Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    # 3. Install NPM dependencies
+    - name: Install JS dependencies
+      run: npm install
+
+    # 4. Install CocoaPods in the ios/ directory
+    - name: Install CocoaPods
+      working-directory: ios
+      run: pod install
+
+    # 5. Build unsigned .app with signing disabled
+    - name: Build unsigned .app
+      run: |
+        xcodebuild \
+          -workspace ios/ALAN_ios.xcworkspace \
+          -scheme ALAN_ios \
+          -configuration Release \
+          -sdk iphoneos \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          BUILD_DIR=$PWD/build clean build
+
+    # 6. Package the .app into an unsigned IPA
+    - name: Package unsigned IPA
+      run: |
+        cd build/Release-iphoneos
+        ditto -c -k --sequesterRsrc --keepParent ALAN_ios.app ALAN_ios.ipa
+        mv ALAN_ios.ipa $GITHUB_WORKSPACE
+
+    # 7. Upload the IPA so you can download it
+    - name: Upload IPA artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: unsigned-ipa
+        path: ALAN_ios.ipa
