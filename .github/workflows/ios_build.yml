@@ -10,7 +10,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    # 1. Check out your code
+    # 1. Check out the code
     - uses: actions/checkout@v3
 
     # 2. Set up Node.js
@@ -26,7 +26,7 @@ jobs:
     # 4. Install CocoaPods in the ios/ directory
     - name: Install CocoaPods
       working-directory: ios
-      run: pod install
+      run: pod install --repo-update
 
     # 5. Build unsigned .app with signing disabled
     - name: Build unsigned .app

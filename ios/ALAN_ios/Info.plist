@@ -2,6 +2,25 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>UIBackgroundModes</key>
+	<array>
+	<string>bluetooth-central</string>
+	</array>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>BLE signaling channel</string>
+	<key>NSBonjourServices</key>
+	<array>
+	<string>_my-signaling._tcp</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Peer devices on your local network</string>
+	<key>NSMotionUsageDescription</key>
+	<string>We need IMU access to capture robot motion.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We need camera access to stream video.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need microphone access for audio streaming.</string>
+	
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
