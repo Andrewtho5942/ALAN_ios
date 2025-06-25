@@ -21,15 +21,17 @@ type RootStackParamList = {
 
 const sendToESP = async () => {
   try {
-    const message = "hello_esp";
-    const res = await axios.get(`http://192.168.4.1/msg`, {
-      params: { data: message },
-      timeout: 3000, // optional: to avoid hanging forever
-    });
-    console.log("ESP response:", res.data);
+    const start = performance.now()
+    const res = await axios.get("http://192.168.6.123/msg", {
+    params: { data: "ping" },
+  });
+  console.log('Latency: ', performance.now() - start)
+  console.log('Status: ', res.data.status); 
+  console.log('Echo: ', res.data.echo);
+  console.log('Mode: ', res.data.mode);
+
   } catch (err) {
    if (axios.isAxiosError(err)) {
-      // err is typed as AxiosError here
       console.error("Axios error:", err.message);
     } else {
       console.error("Unknown error:", (err as Error).message);

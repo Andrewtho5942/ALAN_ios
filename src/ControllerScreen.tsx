@@ -49,7 +49,7 @@ export default function ControllerScreen({ navigation }: Props) {
           <Text style={{ 
             color: camSide === 'back' ? 'white' : 'black',
             fontSize: 16 }}>
-            {camSide === 'back' ? 'Back' : 'Front'}
+            {camSide === 'back' ? 'Back Cam' : 'Front Cam'}
           </Text>
         </TouchableOpacity>
       ),

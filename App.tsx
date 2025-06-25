@@ -11,6 +11,9 @@ import {
 import HomeScreen from './src/HomeScreen'
 import ControllerScreen from './src/ControllerScreen'
 
+//Start command:
+// npx react-native start METRO_HOST=100.68.78.107
+
 type RootStackParamList = {
   Home: undefined;
   Controller: undefined;
