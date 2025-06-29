@@ -1,5 +1,5 @@
 // Joystick.tsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
 import throttle from 'lodash/throttle'
 import {
@@ -20,8 +20,6 @@ type JoystickProps = {
   onMove: (pos: { x: number; y: number }) => void;
   style?: ViewStyle;            // to reposition the joystick
 };
-
-// We'll use this to store gesture state
 type GestureContext = { startX: number; startY: number };
 
 export default function Joystick({
@@ -30,18 +28,23 @@ export default function Joystick({
   onMove,
   style,
 }: JoystickProps) {
-  const maxRadius = (size - stickSize) / 2;
+const maxRadius = (size - stickSize) / 2;
 
-  const transX = useSharedValue(0);
-  const transY = useSharedValue(0);
+const transX = useSharedValue(0);
+const transY = useSharedValue(0);
+const lastX = useSharedValue(0);
+const lastY = useSharedValue(0);
+const debounceThreshold = 3;
 
-  // 1) create a simple, plain‐JS wrapper around onMove
-const throttled = useMemo(() => throttle(onMove, 16), [onMove]);
- const jsOnMove = (pos: { x: number; y: number }) => {
-    throttled(pos);
-  };
+const throttledRef = useRef(throttle(onMove, 50));
+const jsThrottled = (pos: { x: number; y: number }) => {
+     throttledRef.current(pos);
+};
 
-  // 2) create the pan gesture with our context
+  useEffect(() => {
+    throttledRef.current = throttle(onMove, 50);
+  }, [onMove]);
+
   const pan = useMemo(() => {
     const context: GestureContext = { startX: 0, startY: 0 };
     return Gesture.Pan()
@@ -61,13 +64,23 @@ const throttled = useMemo(() => throttle(onMove, 16), [onMove]);
         }
         transX.value = newX;
         transY.value = newY;
-          // normalized [-1..1] -> call our plain wrapper
-+        runOnJS(jsOnMove)({
-          x: newX / maxRadius,
-          y: newY / maxRadius,
-        })
+
+        let debounce_dist = Math.hypot(Math.abs(lastX.value - newX), Math.abs(lastY.value - newY));
+        // console.log('dist: ',debounce_dist, '  lastX: ', lastX.value, '  lastY: ', lastY.value)
+        // console.log('newX: ',newX, '  newY: ', newY)
+
+        if(debounce_dist > debounceThreshold) {
+          runOnJS(jsThrottled)({
+            x: Math.round((newX / maxRadius) * 1000) / 1000,
+            y: Math.round((newY / maxRadius) * 1000) / 1000,
+          })
+          lastX.value = newX;
+          lastY.value = newY;
+        // console.log('newX: ',newX, '  newY: ', newY)
+        }
+
       })
-      // return the center when released
+      // return to the center when released
       .onEnd(() => {
         transX.value = withSpring(0, {
           stiffness: 200,  // higher = faster
@@ -79,9 +92,9 @@ const throttled = useMemo(() => throttle(onMove, 16), [onMove]);
           damping:   15,
           mass:      0.5,
         })
-        runOnJS(jsOnMove)({ x: 0, y: 0 })
+        runOnJS(onMove)({ x: 0, y: 0 })
       })
-  }, [maxRadius, jsOnMove, transX, transY]);
+  }, [maxRadius, onMove, transX, transY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [

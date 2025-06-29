@@ -1,5 +1,5 @@
 // App.tsx
-import * as React from 'react';
+import React, { createContext, useContext } from 'react';
 import { Button, Text, View, StyleSheet } from 'react-native';
 import { NavigationContainer, RouteProp } from '@react-navigation/native';
 import {
@@ -7,9 +7,11 @@ import {
   NativeStackNavigationProp,
   NativeStackScreenProps,
 } from '@react-navigation/native-stack';
+import axios from 'axios';
 
 import HomeScreen from './src/HomeScreen'
 import ControllerScreen from './src/ControllerScreen'
+import { ESPProvider } from './src/ESPContext';
 
 //Start command:
 // npx react-native start METRO_HOST=100.68.78.107
@@ -27,6 +29,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
+  <ESPProvider>
     <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Home"
@@ -57,6 +60,7 @@ export default function App() {
         />
       </Stack.Navigator>
     </NavigationContainer>
+  </ESPProvider>
   );
 }
 

@@ -2,6 +2,8 @@ import React, { useEffect, useState, useLayoutEffect } from 'react'
 import { View, Text, StyleSheet, Button, TouchableOpacity } from 'react-native'
 import { Camera, useCameraDevice } from 'react-native-vision-camera'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { useESP } from './ESPContext';
+
 import Joystick from './Joystick'
 import VerticalSlider from './VerticalSlider'
 
@@ -12,19 +14,34 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, 'Controller'>
 
 
-function joystickOnMove() {
-  console.log('joystick moved')
-}
-function sliderOnMove() {
-  console.log('slider moved')
-}
 
 export default function ControllerScreen({ navigation }: Props) {
   const [camSide, setCamSide] = useState<'back' | 'front'>('back');
   const device = useCameraDevice(camSide)
+  const { sendToESP } = useESP();
+
+
+  function joystickOnMove(
+    pos: { x: number; y: number }, 
+  ) {
+    pos.y = -pos.y
+    let l = pos.y + pos.x
+    let r = pos.y - pos.x
+    const maxMag = Math.max(Math.abs(l), Math.abs(r), 1);
+    l = Math.round((l / maxMag) * 255);
+    r = Math.round((r / maxMag) * 255);
+
+    console.log('joystick moved..  pos: ', pos, ' | l: ', l, ' , r: ', r);
+    sendToESP('m', {'l' : l, 'r' : r});
+  }
+
+  function sliderOnMove(pos: number) {
+    console.log('slider moved: ', pos)
+    sendToESP('s', {'s' : pos});
+  }
 
   useEffect(() => {
-    ; (async () => {
+     (async () => {
       await Camera.requestCameraPermission()
       await Camera.requestMicrophonePermission()
     })()
@@ -83,7 +100,7 @@ export default function ControllerScreen({ navigation }: Props) {
       <VerticalSlider onMove={sliderOnMove} style={{
         position: 'absolute',
         left: 70,
-        bottom: 20
+        bottom: 40
       }}/>
     </View>
   )

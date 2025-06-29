@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, Animated, PanResponder, StyleSheet, ViewStyle } from 'react-native';
+import throttle from 'lodash/throttle'
 
 export type VerticalSliderProps = {
   height?: number;
@@ -16,13 +17,26 @@ export default function VerticalSlider({
   onMove,
   style,
 }: VerticalSliderProps) {
-  // Range the thumb can move
-  const maxRange = height;
+  
+  const debounceThreshold = 2; 
+  const maxRange = height-thumbSize;
+  const translateY = useRef(new Animated.Value(maxRange)).current;
+  const lastOffset = useRef(maxRange);
+  const lastServoCommand = useRef(lastOffset.current);
+  onMove(normalizePos(lastOffset.current, maxRange));
+  const throttledRef = useRef(throttle(onMove, 50));
+  const jsThrottled = (pos:number) => {
+    throttledRef.current(pos);
+  };
 
-  // Animated value for Y translation
-  const translateY = useRef(new Animated.Value(maxRange / 2)).current;
-  // Keep track of the last offset
-  const lastOffset = useRef(maxRange / 2);
+  useEffect(() => {
+    throttledRef.current = throttle(onMove, 50);
+  }, [onMove]);
+
+  // normalize the sliderPos to (0-100)
+  function normalizePos(pos:number, maxRange:number) {
+    return Math.round((1 - (pos / maxRange)) * 100)
+  }
 
   // PanResponder to handle touch gestures
   const panResponder = useRef(
@@ -41,7 +55,10 @@ export default function VerticalSlider({
         // Apply translation
         translateY.setValue(newY - lastOffset.current);
         // Call back with normalized value (invert so top=1)
-        onMove(1 - newY / maxRange);
+        if ((Math.abs(newY - lastServoCommand.current) > debounceThreshold)) {
+          jsThrottled(normalizePos(newY, maxRange));
+          lastServoCommand.current = newY;
+        }
       },
       onPanResponderRelease: (_, gestureState) => {
         // Final clamped position
@@ -53,7 +70,7 @@ export default function VerticalSlider({
         // Store for next gesture
         lastOffset.current = newY;
         // Ensure final onValueChange
-        onMove(1 - newY / maxRange);
+        onMove(normalizePos(newY, maxRange));
       },
       onPanResponderTerminationRequest: () => false,
     })
@@ -67,7 +84,11 @@ export default function VerticalSlider({
   return (
     <View style={[{ width, height }, style]}>  
       {/* Rail */}
-      <View style={[styles.rail, { width: width / 6, height }]} />
+      <View style={[styles.rail, { 
+          width: width / 6, 
+          height : height-thumbSize+6,
+          top: (thumbSize/2)
+       }]} />
       {/* Thumb */}
       <Animated.View
         {...panResponder.panHandlers}
@@ -78,7 +99,7 @@ export default function VerticalSlider({
             width: thumbSize,
             height: thumbSize,
             borderRadius: thumbSize / 2,
-            left: (width - thumbSize) / 2,
+            left: (width - thumbSize + 2) / 2,
           },
         ]}
       />
