@@ -38,7 +38,6 @@ function HomeScreen({
           navigation.push('Receiver')
         }
       />
-      {/* <Button title="Send to ESP" onPress={() => sendToESP('forward')} /> */}
     </View>
   );
 }

@@ -1,6 +1,6 @@
 // Joystick.tsx
 import React, { useMemo, useRef, useEffect } from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle, View } from 'react-native';
 import throttle from 'lodash/throttle'
 import {
   Gesture,
@@ -66,8 +66,6 @@ const jsThrottled = (pos: { x: number; y: number }) => {
         transY.value = newY;
 
         let debounce_dist = Math.hypot(Math.abs(lastX.value - newX), Math.abs(lastY.value - newY));
-        // console.log('dist: ',debounce_dist, '  lastX: ', lastX.value, '  lastY: ', lastY.value)
-        // console.log('newX: ',newX, '  newY: ', newY)
 
         if(debounce_dist > debounceThreshold) {
           runOnJS(jsThrottled)({
@@ -112,17 +110,25 @@ const jsThrottled = (pos: { x: number; y: number }) => {
         style,
       ]}>
       <GestureDetector gesture={pan}>
+        <View
+        style={{
+          width: stickSize + 40,
+          height: stickSize + 40,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
         <Animated.View
           style={[
             styles.stick,
-            animatedStyle,
             {
               width: stickSize,
               height: stickSize,
               borderRadius: stickSize / 2,
             },
+            animatedStyle,
           ]}
         />
+      </View>
       </GestureDetector>
     </GestureHandlerRootView>
   );
@@ -137,5 +143,5 @@ const styles = StyleSheet.create({
   stick: {
     backgroundColor: '#2080ee',
     position: 'absolute',
-  },
+  }
 });

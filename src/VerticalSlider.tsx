@@ -82,16 +82,25 @@ export default function VerticalSlider({
   };
 
   return (
-    <View style={[{ width, height }, style]}>  
+    <View style={[{ width, height }, style]}>
       {/* Rail */}
       <View style={[styles.rail, { 
           width: width / 6, 
           height : height-thumbSize+6,
           top: (thumbSize/2)
        }]} />
+
+      {/* Thumb Buffer */}
+      <View style={{
+          width: thumbSize + 0, 
+          height: thumbSize + 0,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
       {/* Thumb */}
       <Animated.View
         {...panResponder.panHandlers}
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
         style={[
           styles.thumb,
           animatedThumbStyle,
@@ -103,6 +112,7 @@ export default function VerticalSlider({
           },
         ]}
       />
+      </View>
     </View>
   );
 }
@@ -110,7 +120,7 @@ export default function VerticalSlider({
 const styles = StyleSheet.create({
   rail: {
     position: 'absolute',
-    backgroundColor: '#ccc',
+    backgroundColor: '#888',
     borderRadius: 2,
     left: '50%',
     marginLeft: -2,
