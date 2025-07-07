@@ -1,6 +1,12 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Animated, PanResponder, StyleSheet, ViewStyle } from 'react-native';
-import throttle from 'lodash/throttle'
+import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet, ViewStyle } from 'react-native';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  runOnJS,
+} from 'react-native-reanimated';
+import throttle from 'lodash/throttle';
 
 export type VerticalSliderProps = {
   height?: number;
@@ -10,6 +16,7 @@ export type VerticalSliderProps = {
   style?: ViewStyle;
 };
 
+
 export default function VerticalSlider({
   height = 200,
   width = 40,
@@ -17,103 +24,75 @@ export default function VerticalSlider({
   onMove,
   style,
 }: VerticalSliderProps) {
-  
-  const debounceThreshold = 2; 
-  const maxRange = height-thumbSize;
-  const translateY = useRef(new Animated.Value(maxRange)).current;
-  const lastOffset = useRef(maxRange);
-  const lastServoCommand = useRef(lastOffset.current);
-  onMove(normalizePos(lastOffset.current, maxRange));
+  const debounceThreshold = 2;
+  const maxRange = height - thumbSize;
+
+  const translateY = useSharedValue(maxRange);
+  const gestureStartY = useSharedValue(translateY.value);
+  const lastServoCommand = useSharedValue(maxRange);
+
   const throttledRef = useRef(throttle(onMove, 50));
-  const jsThrottled = (pos:number) => {
-    throttledRef.current(pos);
+  const jsThrottled = (newY: number) => {
+    const normalized = Math.round((1 - newY / maxRange) * 100);
+    throttledRef.current(normalized);
   };
 
   useEffect(() => {
     throttledRef.current = throttle(onMove, 50);
   }, [onMove]);
+const drag = Gesture.Pan()
+  .hitSlop(20)
+  .onStart(() => {
+    gestureStartY.value = translateY.value;
+  })
+  .onUpdate((e) => {
+    let newY = gestureStartY.value + e.translationY;
 
-  // normalize the sliderPos to (0-100)
-  function normalizePos(pos:number, maxRange:number) {
-    return Math.round((1 - (pos / maxRange)) * 100)
-  }
+    if (newY < 0) newY = 0;
+    if (newY > maxRange) newY = maxRange;
 
-  // PanResponder to handle touch gestures
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        // Prepare the Animated Value for dragging
-        translateY.setOffset(lastOffset.current);
-        translateY.setValue(0);
-      },
-      onPanResponderMove: (_, gestureState) => {
-        // Compute new position clamped within [0, maxRange]
-        let newY = lastOffset.current + gestureState.dy;
-        if (newY < 0) newY = 0;
-        if (newY > maxRange) newY = maxRange;
-        // Apply translation
-        translateY.setValue(newY - lastOffset.current);
-        // Call back with normalized value (invert so top=1)
-        if ((Math.abs(newY - lastServoCommand.current) > debounceThreshold)) {
-          jsThrottled(normalizePos(newY, maxRange));
-          lastServoCommand.current = newY;
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        // Final clamped position
-        let newY = lastOffset.current + gestureState.dy;
-        if (newY < 0) newY = 0;
-        if (newY > maxRange) newY = maxRange;
-        // Flatten offset into the animated value
-        translateY.flattenOffset();
-        // Store for next gesture
-        lastOffset.current = newY;
-        // Ensure final onValueChange
-        onMove(normalizePos(newY, maxRange));
-      },
-      onPanResponderTerminationRequest: () => false,
-    })
-  ).current;
+    translateY.value = newY;
 
-  // Animated style for the thumb
-  const animatedThumbStyle = {
-    transform: [{ translateY }],
-  };
+    if (Math.abs(newY - lastServoCommand.value) > debounceThreshold) {
+      runOnJS(jsThrottled)(newY);
+      lastServoCommand.value = newY;
+    }
+  })
+  .onEnd(() => {
+    runOnJS(jsThrottled)(translateY.value);
+  });
+
+  const animatedThumbStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
 
   return (
-    <View style={[{ width, height }, style]}>
-      {/* Rail */}
-      <View style={[styles.rail, { 
-          width: width / 6, 
-          height : height-thumbSize+6,
-          top: (thumbSize/2)
-       }]} />
-
-      {/* Thumb Buffer */}
-      <View style={{
-          width: thumbSize + 0, 
-          height: thumbSize + 0,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-      {/* Thumb */}
-      <Animated.View
-        {...panResponder.panHandlers}
-          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+    <GestureHandlerRootView style={[{ width, height }, style]}>
+      <View
         style={[
-          styles.thumb,
-          animatedThumbStyle,
+          styles.rail,
           {
-            width: thumbSize,
-            height: thumbSize,
-            borderRadius: thumbSize / 2,
-            left: (width - thumbSize + 2) / 2,
+            width: width / 6,
+            height: height - thumbSize + 6,
+            top: thumbSize / 2,
           },
         ]}
       />
-      </View>
-    </View>
+      <GestureDetector gesture={drag}>
+        <Animated.View
+          style={[
+            styles.thumb,
+            animatedThumbStyle,
+            {
+              width: thumbSize,
+              height: thumbSize,
+              borderRadius: thumbSize / 2,
+              left: (width - thumbSize + 2) / 2,
+            },
+          ]}
+        />
+      </GestureDetector>
+    </GestureHandlerRootView>
   );
 }
 

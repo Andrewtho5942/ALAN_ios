@@ -11,15 +11,13 @@ import axios from 'axios';
 
 import HomeScreen from './src/HomeScreen'
 import ControllerScreen from './src/ControllerScreen'
+import ReceiverScreen from './src/ReceiverScreen'
+import SettingsScreen from './src/SettingsScreen'
 import { ESPProvider } from './src/ESPContext';
+import { RootStackParamList } from './src/types';
 
 //Start command:
 // npx react-native start METRO_HOST=100.68.78.107
-
-type RootStackParamList = {
-  Home: undefined;
-  Controller: undefined;
-};
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -58,14 +56,21 @@ export default function App() {
           component={ControllerScreen}
           options={{ title: 'Controller' }}
         />
+        <Stack.Screen
+          name="Receiver"
+          component={ReceiverScreen}
+          options={{ title: 'Receiver' }}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{ title: 'Settings' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   </ESPProvider>
   );
 }
-
-
-
 
 const styles = StyleSheet.create({
   container: {

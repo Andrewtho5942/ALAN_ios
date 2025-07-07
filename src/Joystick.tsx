@@ -91,6 +91,8 @@ const jsThrottled = (pos: { x: number; y: number }) => {
           mass:      0.5,
         })
         runOnJS(onMove)({ x: 0, y: 0 })
+        runOnJS(onMove)({ x: 0, y: 0 })
+        runOnJS(onMove)({ x: 0, y: 0 })
       })
   }, [maxRadius, onMove, transX, transY]);
 

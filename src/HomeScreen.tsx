@@ -11,11 +11,7 @@ import {
   Button,
 } from 'react-native';
 
-type RootStackParamList = {
-  Home: undefined;
-  Controller: undefined;
-  Receiver: undefined;
-};
+import { RootStackParamList } from './types';
 
 
 
@@ -36,6 +32,12 @@ function HomeScreen({
         title="Receiver Mode"
         onPress={() =>
           navigation.push('Receiver')
+        }
+      />
+      <Button
+        title="Settings"
+        onPress={() =>
+          navigation.push('Settings')
         }
       />
     </View>

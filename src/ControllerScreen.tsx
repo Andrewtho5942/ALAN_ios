@@ -6,11 +6,8 @@ import { useESP } from './ESPContext';
 
 import Joystick from './Joystick'
 import VerticalSlider from './VerticalSlider'
+import { RootStackParamList } from './types';
 
-type RootStackParamList = {
-  Home: undefined
-  Controller: undefined
-}
 type Props = NativeStackScreenProps<RootStackParamList, 'Controller'>
 
 
