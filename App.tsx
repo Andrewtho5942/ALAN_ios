@@ -15,6 +15,7 @@ import ReceiverScreen from './src/ReceiverScreen'
 import SettingsScreen from './src/SettingsScreen'
 import { ESPProvider } from './src/ESPContext';
 import { RootStackParamList } from './src/types';
+// import { MultipeerProvider } from './src/MultipeerContext';
 
 //Start command:
 // npx react-native start METRO_HOST=100.68.78.107
@@ -27,48 +28,48 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
-  <ESPProvider>
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Home"
-        screenOptions={{
-          headerTitleAlign: 'center',
-          // make the header semi-transparent:
-          headerTransparent: true,
-          headerStyle: {
-            backgroundColor: 'rgba(0, 0, 0, 0.4)',  // adjust alpha to taste
-          },
-          // set the color of the title & back button:
-          headerTintColor: '#fff',
-          headerTitleStyle: {
-            fontWeight: '700',
-            fontSize: 20
-          },
-          
-        }}>
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ title: 'Home' }}
-        />
-        <Stack.Screen
-          name="Controller"
-          component={ControllerScreen}
-          options={{ title: 'Controller' }}
-        />
-        <Stack.Screen
-          name="Receiver"
-          component={ReceiverScreen}
-          options={{ title: 'Receiver' }}
-        />
-        <Stack.Screen
-          name="Settings"
-          component={SettingsScreen}
-          options={{ title: 'Settings' }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
-  </ESPProvider>
+  // <MultipeerProvider serviceType='alan_service'>
+    <ESPProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Home"
+          screenOptions={{
+            headerTitleAlign: 'center',
+            headerTransparent: true,
+            headerStyle: {
+              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            },
+            headerTintColor: '#fff',
+            headerTitleStyle: {
+              fontWeight: '700',
+              fontSize: 20
+            },
+            
+          }}>
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{ title: 'Home' }}
+          />
+          <Stack.Screen
+            name="Controller"
+            component={ControllerScreen}
+            options={{ title: 'Controller' }}
+          />
+          <Stack.Screen
+            name="Receiver"
+            component={ReceiverScreen}
+            options={{ title: 'Receiver' }}
+          />
+          <Stack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{ title: 'Settings' }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ESPProvider>
+  // </MultipeerProvider>
   );
 }
 

@@ -14,8 +14,6 @@ import {
 import { RootStackParamList } from './types';
 
 
-
-
 function HomeScreen({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, 'Home'>) {

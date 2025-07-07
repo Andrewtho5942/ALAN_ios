@@ -2,18 +2,38 @@ import React, { useEffect, useState, useLayoutEffect } from 'react'
 import { View, Text, StyleSheet, Button, TouchableOpacity } from 'react-native'
 import { Camera, useCameraDevice } from 'react-native-vision-camera'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import { useESP } from './ESPContext';
+import { mediaDevices } from 'react-native-webrtc';
 
+import { useESP } from './ESPContext';
 import { RootStackParamList } from './types';
+import { useEmitterRTC } from './EmitterRTC';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Receiver'>
 
+import {
+  RTCPeerConnection,
+  RTCSessionDescription,
+  RTCIceCandidate
+} from 'react-native-webrtc';
+
+const pc = new RTCPeerConnection({
+  iceServers: [], // empty means purely local
+});
+
+async function startLocalCamera() {
+  const stream = await mediaDevices.getUserMedia({
+    video: true,
+    audio: true,
+  });
+  return stream;
+}
 
 
 export default function ReceiverScreen({ navigation }: Props) {
   const [camSide, setCamSide] = useState<'back' | 'front'>('back');
   const device = useCameraDevice(camSide)
   const { sendToESP } = useESP();
+  useEmitterRTC();
 
 
   useEffect(() => {
