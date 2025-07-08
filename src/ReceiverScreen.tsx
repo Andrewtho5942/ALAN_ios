@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useLayoutEffect } from 'react'
+import React, { useEffect, useState, useLayoutEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Button, TouchableOpacity } from 'react-native'
 import { Camera, useCameraDevice } from 'react-native-vision-camera'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import { mediaDevices } from 'react-native-webrtc';
+import { mediaDevices, RTCView  } from 'react-native-webrtc';
 
 import { useESP } from './ESPContext';
 import { RootStackParamList } from './types';
-import { useEmitterRTC } from './EmitterRTC';
+import useEmitterRTC from './EmitterRTC';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Receiver'>
 
@@ -20,20 +20,56 @@ const pc = new RTCPeerConnection({
   iceServers: [], // empty means purely local
 });
 
-async function startLocalCamera() {
-  const stream = await mediaDevices.getUserMedia({
-    video: true,
-    audio: true,
-  });
-  return stream;
-}
-
 
 export default function ReceiverScreen({ navigation }: Props) {
   const [camSide, setCamSide] = useState<'back' | 'front'>('back');
-  const device = useCameraDevice(camSide)
   const { sendToESP } = useESP();
-  useEmitterRTC();
+  const [stream, setStream] = useState<any>(null);
+  const streamRef = useRef<any>(null);
+  useEffect(() => {
+    streamRef.current = stream;
+  }, [stream]);
+
+  
+  const handleControllerCommand = async (cmd: string, value?: any) => {
+    if(cmd == 'switchCam') {
+      if(value) {
+        setCamSide(value);
+      } else {
+        setCamSide(s => s === 'back' ? 'front' : 'back');
+      }
+    } else if (cmd == 'zoom') {
+      if (value == null) {
+        console.error('No zoom value provided');
+        return;
+      }
+      const videoTrack = streamRef?.current?.getVideoTracks()[0];
+    if (!videoTrack) {
+      console.error('No video track to zoom');
+      return;
+    }
+    console.log('zoom command value: ', value)
+    // try to use applyConstraints for digital zoom
+      try {
+        await videoTrack.applyConstraints({
+          // 1.0 = no zoom, up to device.maxZoom
+          advanced: [{ zoom: Math.max(1, value) }]
+        });
+      } catch (e) {
+        console.warn('applyConstraints zoom failed: ', e);
+      }
+      
+      pc?.getSenders()
+      .find((s:any) => s.track === videoTrack);
+    if (pc) {
+      await (pc as any).replaceTrack(videoTrack);
+    }
+    } else {
+      console.error('ERROR in ReceiverScreen: Unrecognized controller command!')
+    }
+  }
+
+  const sendToController = useEmitterRTC(stream, handleControllerCommand);
 
 
   useEffect(() => {
@@ -42,6 +78,22 @@ export default function ReceiverScreen({ navigation }: Props) {
       await Camera.requestMicrophonePermission()
     })()
   }, [])
+
+  useEffect(() => {
+    (async () => {
+      const devices:any = await mediaDevices.enumerateDevices()
+      const front  = devices.find((d:any) => d.label.includes('Front'));
+      const backUltra = devices.find((d:any) => d.label.includes('Ultra'));
+      
+      const newStream = await mediaDevices.getUserMedia({
+        video: {
+          deviceId: camSide == 'front' ? front.deviceId : backUltra.deviceId
+        },
+        audio: true,
+      });
+      setStream(newStream);
+    })();
+  }, [camSide]);
 
 
   useLayoutEffect(() => {
@@ -54,8 +106,11 @@ export default function ReceiverScreen({ navigation }: Props) {
             paddingVertical: 8,
             borderRadius: 4,
           }}
-          onPress={() =>
-            setCamSide((p) => (p === 'back' ? 'front' : 'back'))
+          onPress={() => {
+             let newCamSide : ('front' | 'back') = (camSide === 'back' ? 'front' : 'back');
+            setCamSide(newCamSide);
+            sendToController('switchCam', newCamSide);
+          }
           }
           activeOpacity={0.7}
         >
@@ -70,35 +125,35 @@ export default function ReceiverScreen({ navigation }: Props) {
   }, [navigation, camSide]);
 
 
-  // loading screen for while the camera device isnt ready yet
-  if (device == null) {
-    return (
+
+ return (
+  <View style={styles.container}>
+    {stream ? (
+      <RTCView
+        style={StyleSheet.absoluteFill}
+        streamURL={stream.toURL()}
+        objectFit="cover"
+      />
+    ) : (
       <View style={styles.loading}>
         <Text style={styles.loadingText}>Loading camera…</Text>
       </View>
-    )
-  }
+    )}
+  </View>
+);
 
-  return (
-    <View style={styles.container}>
-      <Camera
-        style={StyleSheet.absoluteFill}
-        device={device}
-        isActive={true}
-        video={true}
-        photo={true}
-      />
-    </View>
-  )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'black' },
+  container: { 
+    flex: 1, 
+    backgroundColor: 'black'
+  },
   loading: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'black',
   },
-  loadingText: { color: 'white', fontSize: 18 },
+  loadingText: { color: 'white', fontSize: 24 },
 })
