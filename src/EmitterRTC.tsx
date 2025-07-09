@@ -1,22 +1,47 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
+
+// // @ts-ignore
+// const WebRTC = require('react-native-webrtc');
+// // @ts-ignore
+// const { RTCVideoSource} = WebRTC;
+const RNW = require('react-native-webrtc');
+console.log(
+  'RNW exports:', Object.keys(RNW),
+  'RNW.default exports:', Object.keys(RNW.default||{})
+);  
+
+
 import {
   RTCPeerConnection,
   RTCIceCandidate,
   RTCSessionDescription,
+  MediaStreamTrack,
   MediaStream,
+  RTCVideoSource
 } from 'react-native-webrtc';
+
 import TcpSocket from 'react-native-tcp-socket';
 
 const LISTEN_PORT = 12345;
 
 export default function useEmitterRTC(
-  stream?: MediaStream, 
+  // stream?: MediaStream, 
   onCommand?: (cmd: string, value?: any) => void
 ) {
   const peer = useRef<RTCPeerConnection | null>(null);
   const server = useRef<TcpSocket.Server | null>(null);
   const clientSocket = useRef<TcpSocket.Socket | null>(null);
   const buffer = useRef('');
+  if (typeof RTCVideoSource !== 'function') {
+  console.error(
+    '🚨 RTCVideoSource is undefined. ' +
+    'Make sure you have react-native-webrtc >=1.92.1, ' +
+    'ran pod install, and rebuilt the app.'
+  );
+  return () => {};
+}
+  const videoSource   = useMemo(() => new RTCVideoSource(), []);
+  const localTrackRef = useRef<MediaStreamTrack>(videoSource.createTrack());
 
   useEffect(() => {
     // Create peer connection
@@ -24,6 +49,8 @@ export default function useEmitterRTC(
       iceServers: [], // LAN only
     });
     peer.current = pc;
+
+    pc.addTrack(localTrackRef.current);
 
     const sendSignal = (data: any) => {
       const msg = JSON.stringify(data);
@@ -115,21 +142,31 @@ export default function useEmitterRTC(
   }, []);
 
 
-  useEffect(() => {
-    if (!stream || !peer.current) return;
-    const pc = peer.current;
+  // useEffect(() => {
+  //   if (!peer.current) return;
+  //   const pc = peer.current;
 
-    const newVideoTrack = stream.getVideoTracks()[0];
-    const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+  //   const newVideoTrack = stream.getVideoTracks()[0];
+  //   const sender = pc.getSenders().find(s => s.track?.kind === 'video');
 
-    if (sender) {
-      sender.replaceTrack(newVideoTrack);
-    } else {
-      pc.addTrack(newVideoTrack, stream);
-    }
-  }, [stream]);
+  //   if (sender) {
+  //     sender.replaceTrack(newVideoTrack);
+  //   } else {
+  //     pc.addTrack(newVideoTrack, stream);
+  //   }
+  // }, [stream]);
 
-  
+
+  const onFrame = (frame: {
+    width: number;
+    height: number;
+    data: Uint8Array;
+    rotation: number;
+    timestamp: number;
+  }) => {
+    videoSource.onFrame(frame);
+  };
+
   const sendCommand = (command: string, value?:any) => {
     const sock = clientSocket.current;
     if (!sock) {
@@ -139,5 +176,5 @@ export default function useEmitterRTC(
     sock.write(JSON.stringify({ command, value }) + '\n');
   };
 
-  return sendCommand;
+  return {onFrame, sendCommand};
 }

@@ -38,7 +38,7 @@ export default function ReceiverScreen({ navigation }: Props) {
       } else {
         setCamSide(s => s === 'back' ? 'front' : 'back');
       }
-    } else if (cmd == 'zoom') {
+    } else if (cmd == 'zoomCam') {
       if (value == null) {
         console.error('No zoom value provided');
         return;
@@ -69,7 +69,9 @@ export default function ReceiverScreen({ navigation }: Props) {
     }
   }
 
-  const sendToController = useEmitterRTC(stream, handleControllerCommand);
+  const emitterRTCResult = useEmitterRTC(handleControllerCommand);
+  const { onFrame, sendCommand } = (typeof emitterRTCResult === 'object') && (emitterRTCResult !== null) ? 
+    emitterRTCResult : { onFrame: () => {}, sendCommand: () => {} };
 
 
   useEffect(() => {
@@ -99,6 +101,7 @@ export default function ReceiverScreen({ navigation }: Props) {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
+        <>
         <TouchableOpacity
           style={{
             backgroundColor: camSide === 'back' ? '#2080ee' : '#cccc66',
@@ -107,9 +110,9 @@ export default function ReceiverScreen({ navigation }: Props) {
             borderRadius: 4,
           }}
           onPress={() => {
-             let newCamSide : ('front' | 'back') = (camSide === 'back' ? 'front' : 'back');
-            setCamSide(newCamSide);
-            sendToController('switchCam', newCamSide);
+            let newCamSide : ('front' | 'back') = (camSide === 'back' ? 'front' : 'back');
+            handleControllerCommand('switchCam', newCamSide);
+            sendCommand('switchCam', newCamSide);
           }
           }
           activeOpacity={0.7}
@@ -120,6 +123,29 @@ export default function ReceiverScreen({ navigation }: Props) {
             {camSide === 'back' ? 'Back Cam' : 'Front Cam'}
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={{
+            backgroundColor: 'white',
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            borderRadius: 4,
+            marginLeft: 10
+          }}
+          onPress={() => {
+            handleControllerCommand('zoomCam', 2.5)
+          }
+          }
+          activeOpacity={0.7}
+        >
+          <Text style={{ 
+            color: 'black',
+            fontSize: 16 }}>
+            zoom
+          </Text>
+        </TouchableOpacity>
+        
+        </>
+        
       ),
     });
   }, [navigation, camSide]);
