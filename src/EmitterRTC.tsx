@@ -1,16 +1,5 @@
 import { useEffect, useRef, useMemo } from 'react';
 
-// // @ts-ignore
-// const WebRTC = require('react-native-webrtc');
-// // @ts-ignore
-// const { RTCVideoSource} = WebRTC;
-const RNW = require('react-native-webrtc');
-console.log(
-  'RNW exports:', Object.keys(RNW),
-  'RNW.default exports:', Object.keys(RNW.default||{})
-);  
-
-
 import {
   RTCPeerConnection,
   RTCIceCandidate,
