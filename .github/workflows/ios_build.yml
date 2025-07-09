@@ -22,8 +22,9 @@ jobs:
     # 3. Install NPM dependencies
     - name: Install JS dependencies
       run: npm install
-    - name: Export env variables
-      run: export USE_FRAMEWORKS=static
+    
+    # - name: Export env variables
+    #   run: export USE_FRAMEWORKS=static
       
     # 4. Install CocoaPods in the ios/ directory
     - name: Install CocoaPods
