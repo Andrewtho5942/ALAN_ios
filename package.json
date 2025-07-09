@@ -29,6 +29,7 @@
     "react-native-tcp-socket": "^6.3.0",
     "react-native-vision-camera": "^4.6.4",
     "react-native-webrtc": "^124.0.5",
+    "react-native-worklets-core": "^1.6.0",
     "react-native-zeroconf": "^0.13.8"
   },
   "devDependencies": {
