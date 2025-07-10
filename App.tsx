@@ -15,7 +15,20 @@ import ReceiverScreen from './src/ReceiverScreen'
 import SettingsScreen from './src/SettingsScreen'
 import { ESPProvider } from './src/ESPContext';
 import { RootStackParamList } from './src/types';
-// import { MultipeerProvider } from './src/MultipeerContext';
+
+import { NativeModules } from 'react-native';
+console.log('📦 NativeModules:', NativeModules);
+console.log(
+  '🔑 All module names:',
+  Reflect.ownKeys(NativeModules)
+);
+
+// inspect your WebRTC module directly
+console.log(
+  '🔧 WebRTCModule contents:',
+  Reflect.ownKeys(NativeModules.WebRTCModule),
+  NativeModules.WebRTCModule
+);
 
 //Start command:
 // npx react-native start METRO_HOST=100.68.78.107

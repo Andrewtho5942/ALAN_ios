@@ -69,9 +69,7 @@ export default function ReceiverScreen({ navigation }: Props) {
     }
   }
 
-  const emitterRTCResult = useEmitterRTC(handleControllerCommand);
-  const { onFrame, sendCommand } = (typeof emitterRTCResult === 'object') && (emitterRTCResult !== null) ? 
-    emitterRTCResult : { onFrame: () => {}, sendCommand: () => {} };
+  const {sendCommand} = useEmitterRTC(handleControllerCommand);
 
 
   useEffect(() => {

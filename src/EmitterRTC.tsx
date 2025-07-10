@@ -6,7 +6,6 @@ import {
   RTCSessionDescription,
   MediaStreamTrack,
   MediaStream,
-  RTCVideoSource
 } from 'react-native-webrtc';
 
 import TcpSocket from 'react-native-tcp-socket';
@@ -21,8 +20,8 @@ export default function useEmitterRTC(
   const server = useRef<TcpSocket.Server | null>(null);
   const clientSocket = useRef<TcpSocket.Socket | null>(null);
   const buffer = useRef('');
-  const videoSource   = useMemo(() => new RTCVideoSource(), []);
-  const localTrackRef = useRef<MediaStreamTrack>(videoSource.createTrack());
+  // const videoSource   = useMemo(() => new RTCVideoSource(), []);
+  // const localTrackRef = useRef<MediaStreamTrack>(videoSource.createTrack());
 
   useEffect(() => {
     // Create peer connection
@@ -31,7 +30,7 @@ export default function useEmitterRTC(
     });
     peer.current = pc;
 
-    pc.addTrack(localTrackRef.current);
+    // pc.addTrack(localTrackRef.current);
 
     const sendSignal = (data: any) => {
       const msg = JSON.stringify(data);
@@ -138,15 +137,15 @@ export default function useEmitterRTC(
   // }, [stream]);
 
 
-  const onFrame = (frame: {
-    width: number;
-    height: number;
-    data: Uint8Array;
-    rotation: number;
-    timestamp: number;
-  }) => {
-    videoSource.onFrame(frame);
-  };
+  // const onFrame = (frame: {
+  //   width: number;
+  //   height: number;
+  //   data: Uint8Array;
+  //   rotation: number;
+  //   timestamp: number;
+  // }) => {
+  //   videoSource.onFrame(frame);
+  // };
 
   const sendCommand = (command: string, value?:any) => {
     const sock = clientSocket.current;
@@ -157,5 +156,5 @@ export default function useEmitterRTC(
     sock.write(JSON.stringify({ command, value }) + '\n');
   };
 
-  return {onFrame, sendCommand};
+  return {sendCommand};//onFrame, 
 }
