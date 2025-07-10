@@ -1,8 +1,9 @@
 // ios/ALAN_ios/FrameStreamer.mm
-
+#import "FrameStreamer.h"
 #import <jsi/jsi.h>
 #import <React/RCTCxxBridge.h>
 #import "CustomCapture.h"
+
 
 using namespace facebook;
 
@@ -37,4 +38,3 @@ void installFrameStreamer(jsi::Runtime &rt) {
 extern "C" void RCTRegisterFrameStreamer(jsi::Runtime &rt) {
   installFrameStreamer(rt);
 }
-    
