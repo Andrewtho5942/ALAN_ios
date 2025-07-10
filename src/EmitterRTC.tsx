@@ -1,4 +1,6 @@
 import { useEffect, useRef, useMemo } from 'react';
+import { NativeModules } from 'react-native';
+
 
 import {
   RTCPeerConnection,

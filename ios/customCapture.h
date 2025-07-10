@@ -1,14 +1,13 @@
-#import <AVFoundation/AVFoundation.h>
+// ios/ALAN_ios/CustomCapture.h
+
 #import <WebRTC/WebRTC.h>
+#import <AVFoundation/AVFoundation.h>
 
-/// A simple RTCVideoCapturer subclass that turns every incoming
-/// CMSampleBufferRef into an RTCVideoFrame and pushes it into WebRTC.
-@interface CustomCapture : RTCVideoCapturer <AVCaptureVideoDataOutputSampleBufferDelegate>
+/// A RTCVideoCapturer subclass that only processes incoming
+/// CMSampleBufferRefs handed to it (instead of opening its own camera).
+@interface CustomCapture : RTCVideoCapturer
 
-/// Start capturing from the camera.
-- (void)startCapture;
-
-/// Stop capturing.
-- (void)stopCapture;
+/// Feed each VisionCamera / CMSampleBufferRef here.
+- (void)processSampleBuffer:(CMSampleBufferRef)sampleBuffer;
 
 @end

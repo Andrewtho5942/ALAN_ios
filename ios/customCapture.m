@@ -1,51 +1,39 @@
+// ios/ALAN_ios/CustomCapture.m
+
 #import "CustomCapture.h"
 
-@implementation CustomCapture {
-  AVCaptureSession      *_captureSession;
-  dispatch_queue_t       _captureQueue;
-}
+@implementation CustomCapture
 
 - (instancetype)init {
   if (self = [super init]) {
-    _captureQueue = dispatch_queue_create("custom_capture_queue", DISPATCH_QUEUE_SERIAL);
+    // nothing special to do here
   }
   return self;
 }
 
-- (void)startCapture {
-  AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-  AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:device error:nil];
-  AVCaptureVideoDataOutput *output = [[AVCaptureVideoDataOutput alloc] init];
-  [output setSampleBufferDelegate:self queue:_captureQueue];
-
-  _captureSession = [[AVCaptureSession alloc] init];
-  [_captureSession addInput:input];
-  [_captureSession addOutput:output];
-  [_captureSession startRunning];
-}
-
-- (void)stopCapture {
-  [_captureSession stopRunning];
-  _captureSession = nil;
-}
-
-// AVCaptureVideoDataOutputSampleBufferDelegate
-- (void)captureOutput:(AVCaptureOutput *)output
- didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
-        fromConnection:(AVCaptureConnection *)connection {
+- (void)processSampleBuffer:(CMSampleBufferRef)sampleBuffer {
+  // pull out the CVPixelBuffer
   CVImageBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
   CMTime timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
-  int64_t timeNs = CMTimeGetSeconds(timestamp) * 1e9;
+  int64_t timeNs = (int64_t)(CMTimeGetSeconds(timestamp) * 1e9);
 
-  // Wrap it in WebRTC's pixel buffer and frame objects
+  // wrap it in WebRTC's buffer & frame types
   RTCCVPixelBuffer *rtcBuffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBuffer];
   RTCVideoFrame *frame = [[RTCVideoFrame alloc]
     initWithBuffer:rtcBuffer
          rotation:RTCVideoRotation_0
       timeStampNs:timeNs];
 
-  // Push into WebRTC
+  // push into the WebRTC source
   [self.source capturer:self didCaptureVideoFrame:frame];
 }
 
++ (instancetype)sharedInstance {
+  static CustomCapture *s;
+  static dispatch_once_t once;
+  dispatch_once(&once, ^{
+    s = [[CustomCapture alloc] init];
+  });
+  return s;
+}
 @end

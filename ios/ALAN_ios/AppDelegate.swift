@@ -2,6 +2,7 @@ import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
+import FBRetainCycleDetector
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -28,6 +29,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       in: window,
       launchOptions: launchOptions
     )
+    if let bridge = factory.bridge as? RCTCxxBridge {
+      let runtime = bridge.runtime
+      RCTRegisterFrameStreamer(runtime)
+    }
 
     return true
   }
