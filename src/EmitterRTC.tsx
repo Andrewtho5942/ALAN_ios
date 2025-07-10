@@ -21,14 +21,6 @@ export default function useEmitterRTC(
   const server = useRef<TcpSocket.Server | null>(null);
   const clientSocket = useRef<TcpSocket.Socket | null>(null);
   const buffer = useRef('');
-  if (typeof RTCVideoSource !== 'function') {
-  console.error(
-    '🚨 RTCVideoSource is undefined. ' +
-    'Make sure you have react-native-webrtc >=1.92.1, ' +
-    'ran pod install, and rebuilt the app.'
-  );
-  return () => {};
-}
   const videoSource   = useMemo(() => new RTCVideoSource(), []);
   const localTrackRef = useRef<MediaStreamTrack>(videoSource.createTrack());
 

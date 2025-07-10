@@ -7,6 +7,7 @@ require Pod::Executable.execute_command('node', ['-p',
   )', __dir__]).strip
 
 platform :ios, min_ios_version_supported
+# use_frameworks!
 
 prepare_react_native_project!
 
@@ -17,7 +18,6 @@ prepare_react_native_project!
 # end
 
 target 'ALAN_ios' do
-  use_modular_headers!
   config = use_native_modules!
 
   pod 'react-native-webrtc', :path => '../node_modules/react-native-webrtc', :modular_headers => true
