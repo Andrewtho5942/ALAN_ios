@@ -1,14 +1,20 @@
 import React, { useEffect, useState, useLayoutEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Button, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, Button, TouchableOpacity, Dimensions } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import TcpSocket from 'react-native-tcp-socket';
 import {
   RTCPeerConnection,
   RTCIceCandidate,
   RTCSessionDescription,
-  mediaDevices,
   RTCView,
 } from 'react-native-webrtc';
+import { GestureHandlerRootView, GestureDetector, Gesture } from 'react-native-gesture-handler'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated'
 
 import Joystick from './Joystick'
 import VerticalSlider from './VerticalSlider'
@@ -23,13 +29,20 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Controller'>
 
 export default function ControllerScreen({ navigation }: Props) {
   const [camSide, setCamSide] = useState<'back' | 'front'>('back');
-  const [reconnectUpdater, setReconnectUpdater] = useState<any>(0);
+  const scale      = useSharedValue(1)
+
+  
   const [remoteStream, setRemoteStream] = useState<any>(null);
   const { sendToESP } = useESP();
   const pcRef     = useRef<RTCPeerConnection | null>(null);
   const socketRef = useRef<TcpSocket.Socket | null>(null);
   const bufferRef = useRef<string>('');
   const retryTimer  = useRef<NodeJS.Timeout | null>(null);
+  
+  
+  function sendCommand (command:string, value?:any) {
+    socketRef?.current?.write(JSON.stringify({command:command, value:value}) + '\n')
+  }
 
   function joystickOnMove(
     pos: { x: number; y: number }, 
@@ -50,14 +63,20 @@ export default function ControllerScreen({ navigation }: Props) {
   }
 
   const handleReceiverCommand = (cmd: string, value?: any) => {
-    if(cmd == 'switchCam') {
+     if(cmd == 'switchCam') {
       if(value) {
         setCamSide(value);
       } else {
         setCamSide(s => s === 'back' ? 'front' : 'back');
       }
+    } else if (cmd == 'zoomCam') {
+      if (value == null) {
+        console.error('zoomCam: No zoom value provided');
+        return;
+      }
+      scale.value = value
     } else {
-      console.error('ERROR in ReceiverScreen: Unrecognized controller command!')
+      console.error('ERROR in ControllerScreen: Unrecognized controller command!')
     }
   }
 
@@ -196,7 +215,7 @@ export default function ControllerScreen({ navigation }: Props) {
             let newCamSide : ('front' | 'back') = (camSide === 'back' ? 'front' : 'back');
             setCamSide(newCamSide)
             if (socketRef.current) {
-              socketRef.current.write(JSON.stringify({command:'switchCam', value:newCamSide}) + '\n')
+              sendCommand('switchCam', newCamSide)
             }
             }
           }
@@ -212,32 +231,39 @@ export default function ControllerScreen({ navigation }: Props) {
     });
   }, [navigation, camSide]);
 
+ // Shared values
+  const baseScale  = useSharedValue(1)
+
+  const pinch = Gesture.Pinch()
+    .onStart(() => {
+      baseScale.value = scale.value
+    })
+    .onUpdate(e => {
+      scale.value = Math.min(Math.max(baseScale.value * e.scale, 1), 4)
+      runOnJS(sendCommand)('zoomCam', scale.value)
+    })
+
+    const animatedStyle = useAnimatedStyle(() => ({transform: [{scale: scale.value},],}))
 
   return (
-    <View style={styles.container}>
-      {remoteStream ? (
-        <RTCView
-          streamURL={remoteStream.toURL()}
-          style={styles.rtcView}
-          objectFit="cover"
-        />
-      ) : (
-        <Text style={styles.loadingText}>
-          Waiting for video…
-        </Text>
+    <GestureHandlerRootView style={styles.container}>
+      {remoteStream && (
+        <GestureDetector gesture={pinch}>
+          <View style={styles.videoClipper}>
+            <Animated.View style={[StyleSheet.absoluteFill, animatedStyle]}>
+              <RTCView
+                streamURL={remoteStream.toURL()}
+                style={StyleSheet.absoluteFill}
+                objectFit="cover"
+              />
+            </Animated.View>
+          </View>
+        </GestureDetector>
       )}
 
-      <Joystick onMove={joystickOnMove} style={{
-        position: 'absolute',
-        right: 50,
-        bottom: 40
-      }} />
-      <VerticalSlider onMove={sliderOnMove} style={{
-        position: 'absolute',
-        left: 70,
-        bottom: 40
-      }}/>
-    </View>
+      <Joystick style={styles.joystick} onMove={joystickOnMove}/>
+      <VerticalSlider style={styles.slider} onMove={sliderOnMove}/>
+    </GestureHandlerRootView>
   )
 }
 
@@ -249,6 +275,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'black',
   },
-  rtcView: { flex: 1 },
+  videoClipper: {
+    ...StyleSheet.absoluteFillObject,
+    overflow:     'hidden',
+    alignItems:   'center',   
+    justifyContent: 'center', 
+  },
   loadingText: { color: 'white', fontSize: 18, textAlign: "center", marginTop:100 },
+  joystick: {
+    position: 'absolute',
+        right: 50,
+        bottom: 40
+  },
+  slider: {
+    position: 'absolute',
+    left: 70,
+    bottom: 40
+  }
 })
