@@ -49,7 +49,7 @@ export default function ReceiverScreen({ navigation }: Props) {
       return;
     }
     console.log('zoom command value: ', value)
-    // try to use applyConstraints for digital zoom
+    // try to use apply constraints for digital zoom
       try {
         await videoTrack.applyConstraints({
           // 1.0 = no zoom, up to device.maxZoom
@@ -69,9 +69,7 @@ export default function ReceiverScreen({ navigation }: Props) {
     }
   }
 
-  const emitterRTCResult = useEmitterRTC(handleControllerCommand);
-  const { onFrame, sendCommand } = (typeof emitterRTCResult === 'object') && (emitterRTCResult !== null) ? 
-    emitterRTCResult : { onFrame: () => {}, sendCommand: () => {} };
+  const sendCommand = useEmitterRTC(stream, handleControllerCommand);
 
 
   useEffect(() => {
