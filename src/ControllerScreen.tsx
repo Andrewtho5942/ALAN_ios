@@ -12,8 +12,8 @@ import { GestureHandlerRootView, GestureDetector, Gesture } from 'react-native-g
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withTiming,
   runOnJS,
+  useAnimatedReaction
 } from 'react-native-reanimated'
 
 import Joystick from './Joystick'
@@ -29,7 +29,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Controller'>
 
 export default function ControllerScreen({ navigation }: Props) {
   const [camSide, setCamSide] = useState<'back' | 'front'>('back');
-  const scale      = useSharedValue(1)
+  const zoomPopup = useSharedValue(false);
+  const [zoom, setZoom] = useState(1)
 
   
   const [remoteStream, setRemoteStream] = useState<any>(null);
@@ -74,7 +75,7 @@ export default function ControllerScreen({ navigation }: Props) {
         console.error('zoomCam: No zoom value provided');
         return;
       }
-      scale.value = value
+      setZoom(value)
     } else {
       console.error('ERROR in ControllerScreen: Unrecognized controller command!')
     }
@@ -232,19 +233,34 @@ export default function ControllerScreen({ navigation }: Props) {
   }, [navigation, camSide]);
 
  // Shared values
-  const baseScale  = useSharedValue(1)
+  const baseScale  = useSharedValue(1);
+  const scale      = useSharedValue(1);
 
+  useAnimatedReaction(
+    () => scale.value,
+    (current, previous) => {
+      if (current !== previous) {
+        runOnJS(setZoom)(current)
+      }
+    },
+    [scale]
+  )
   const pinch = Gesture.Pinch()
     .onStart(() => {
-      baseScale.value = scale.value
+      baseScale.value = scale.value;
+      zoomPopup.value = true;
     })
     .onUpdate(e => {
       scale.value = Math.min(Math.max(baseScale.value * e.scale, 1), 4)
       runOnJS(sendCommand)('zoomCam', scale.value)
     })
+    .onEnd(e => {
+      zoomPopup.value = false;
+      
+    })
 
     const animatedStyle = useAnimatedStyle(() => ({transform: [{scale: scale.value},],}))
-
+    const popupStyle = useAnimatedStyle(() => ({opacity: zoomPopup.value ? 1 : 0,}))
   return (
     <GestureHandlerRootView style={styles.container}>
       {remoteStream && (
@@ -263,6 +279,9 @@ export default function ControllerScreen({ navigation }: Props) {
 
       <Joystick style={styles.joystick} onMove={joystickOnMove}/>
       <VerticalSlider style={styles.slider} onMove={sliderOnMove}/>
+      <Animated.View style={[styles.popup, popupStyle]}>
+        <Text style={styles.popupText}>Zoom: {zoom.toFixed(2)}x</Text>
+      </Animated.View>
     </GestureHandlerRootView>
   )
 }
@@ -291,5 +310,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 70,
     bottom: 40
-  }
+  },
+  popup: {
+    position: 'absolute',
+    bottom: 18,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 4,
+  },
+  popupText: {
+    color: 'white',
+    fontSize: 14,
+  },
 })
