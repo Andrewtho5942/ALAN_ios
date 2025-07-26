@@ -23,7 +23,8 @@ export default function VerticalSlider({
   const translateY = useRef(new Animated.Value(maxRange)).current;
   const lastOffset = useRef(maxRange);
   const lastServoCommand = useRef(lastOffset.current);
-  onMove(normalizePos(lastOffset.current, maxRange));
+
+  // onMove(normalizePos(maxRange, maxRange));
   const throttledRef = useRef(throttle(onMove, 50));
   const jsThrottled = (pos:number) => {
     throttledRef.current(pos);
