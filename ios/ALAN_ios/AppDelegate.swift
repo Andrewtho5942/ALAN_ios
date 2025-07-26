@@ -30,7 +30,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     )
 
     // Install the JSI FrameStreamer
-    let cxx = factory.bridge as? RCTCxxBridge {
+    if let cxx = factory.bridge as? RCTCxxBridge {
      RCTRegisterFrameStreamer(cxx.runtime)
     }
 
