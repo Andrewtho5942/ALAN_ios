@@ -11,8 +11,8 @@ import TcpSocket from 'react-native-tcp-socket';
 const LISTEN_PORT = 12345;
 
 export default function useEmitterRTC(
+  onCommand: (cmd: string, value?: any) => void,
   stream?: MediaStream, 
-  onCommand?: (cmd: string, value?: any) => void
 ) {
   const peer = useRef<RTCPeerConnection | null>(null);
   const server = useRef<TcpSocket.Server | null>(null);
@@ -65,7 +65,7 @@ export default function useEmitterRTC(
     // Start the TCP server
     const srv = TcpSocket.createServer((socket) => {
       console.log('Controller connected!');
-
+      
       clientSocket.current = socket;
 
       socket.on('data', (data: string | Buffer) => {

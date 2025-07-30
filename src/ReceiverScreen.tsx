@@ -51,7 +51,7 @@ export default function ReceiverScreen({ navigation }: Props) {
     }
   }
 
-  const sendCommand = useEmitterRTC(stream, handleControllerCommand);
+  const sendCommand = useEmitterRTC(handleControllerCommand, stream);
 
 
   useEffect(() => {

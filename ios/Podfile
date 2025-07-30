@@ -17,6 +17,9 @@ end
 target 'ALAN_ios' do
   config = use_native_modules!
 
+  pod 'RNFBApp',      :path => '../node_modules/@react-native-firebase/app'
+  pod 'RNFBMLVision', :path => '../node_modules/@react-native-firebase/ml-vision'
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
