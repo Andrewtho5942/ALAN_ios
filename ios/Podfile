@@ -26,9 +26,6 @@ target 'ALAN_ios' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  pod 'MLKitObjectDetection', '9.0.0'
-  pod 'MLKitVision', '9.0.0'
-
   # pod 'GoogleMLKit/ObjectDetection', '9.0.0'
 
   post_install do |installer|
