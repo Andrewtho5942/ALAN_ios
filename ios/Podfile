@@ -10,6 +10,7 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, '15.5'
 # platform :ios, min_ios_version_supported
 prepare_react_native_project!
+use_modular_headers!
 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
@@ -25,6 +26,7 @@ target 'ALAN_ios' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
+
 
   # pod 'GoogleMLKit/ObjectDetection', '9.0.0'
 
