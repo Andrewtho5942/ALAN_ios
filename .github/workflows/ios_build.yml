@@ -35,7 +35,6 @@ jobs:
           -workspace ios/ALAN_ios.xcworkspace \
           -scheme ALAN_ios \
           -configuration Debug \
-          -showBuildSettings | grep "PRODUCT_BUNDLE_IDENTIFIER =" \
           -sdk iphoneos \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
