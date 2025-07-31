@@ -8,6 +8,11 @@ import { useESP } from './ESPContext';
 import { RootStackParamList } from './types';
 import useEmitterRTC from './EmitterRTC';
 
+import { captureRef } from 'react-native-view-shot';
+// import ObjectDetection from '@infinitered/react-native-mlkit-object-detection';
+
+
+
 type Props = NativeStackScreenProps<RootStackParamList, 'Receiver'>
 
 import {
@@ -28,6 +33,38 @@ export default function ReceiverScreen({ navigation }: Props) {
   const { sendToESP } = useESP();
   const [stream, setStream] = useState<any>(null);
   const streamRef = useRef<any>(null);
+  const viewCamRef = useRef<View>(null);
+
+
+  useEffect(() => {
+    // run once immediately
+    detectFast(viewCamRef)
+
+    // then every 5s
+    const id = setInterval(() => detectFast(viewCamRef), 5_000)
+    return () => clearInterval(id)
+  }, [])  
+  
+  async function detectFast(ref: React.RefObject<View | null>) {
+    if (!ref.current) return
+    try {
+      const base64 = await captureRef(ref.current, {
+        format:  'jpg',
+        quality: 0.6,
+        width:   320,
+        height:  240,
+        result:  'base64',
+      })
+      const dataUri = `data:image/jpeg;base64,${base64}`
+      // const objects = await (ObjectDetection as any).detect(dataUri)
+      // console.log('detected objects:', objects)
+    } catch (e) {
+      console.warn('detectFast error:', e)
+    }
+  }
+
+
+
   useEffect(() => {
     streamRef.current = stream;
   }, [stream]);
@@ -112,7 +149,7 @@ export default function ReceiverScreen({ navigation }: Props) {
 
 
  return (
-  <View style={styles.container}>
+  <View ref={viewCamRef} style={styles.container}>
     {stream ? (
       <View style={{
          flex:1,

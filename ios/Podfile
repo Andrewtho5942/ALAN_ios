@@ -10,7 +10,6 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, '15.5'
 # platform :ios, min_ios_version_supported
 prepare_react_native_project!
-use_frameworks! :linkage => :static
 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
@@ -27,7 +26,10 @@ target 'ALAN_ios' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  pod 'GoogleMLKit/ObjectDetection', '9.0.0'
+  pod 'MLKitObjectDetection', '9.0.0'
+  pod 'MLKitVision', '9.0.0'
+
+  # pod 'GoogleMLKit/ObjectDetection', '9.0.0'
 
   post_install do |installer|
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202

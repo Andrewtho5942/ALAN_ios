@@ -9,13 +9,13 @@ import {
 } from '@react-navigation/native-stack';
 import axios from 'axios';
 
+
 import HomeScreen from './src/HomeScreen'
 import ControllerScreen from './src/ControllerScreen'
 import ReceiverScreen from './src/ReceiverScreen'
 import SettingsScreen from './src/SettingsScreen'
 import { ESPProvider } from './src/ESPContext';
 import { RootStackParamList } from './src/types';
-// import { MultipeerProvider } from './src/MultipeerContext';
 
 //Start command:
 // npx react-native start METRO_HOST=100.68.78.107
@@ -24,52 +24,63 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 
 
-
+// const MODELS: ObjectDetectionConfig = {};
 
 export default function App() {
+  // const models = useObjectDetectionModels({
+  //   assets: MODELS,
+  //   loadDefaultModel: true,
+  //   defaultModelOptions: {
+  //     detectorMode: 'singleImage',
+  //     shouldEnableMultipleObjects: true,
+  //     shouldEnableClassification: true,
+  //   },
+  // });
+  // const { ObjectDetectionProvider } = useObjectDetectionProvider(models);
+
   return (
-  // <MultipeerProvider serviceType='alan_service'>
-    <ESPProvider>
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Home"
-          screenOptions={{
-            headerTitleAlign: 'center',
-            headerTransparent: true,
-            headerStyle: {
-              backgroundColor: 'rgba(0, 0, 0, 0.4)',
-            },
-            headerTintColor: '#fff',
-            headerTitleStyle: {
-              fontWeight: '700',
-              fontSize: 20
-            },
-            
-          }}>
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{ title: 'Home' }}
-          />
-          <Stack.Screen
-            name="Controller"
-            component={ControllerScreen}
-            options={{ title: 'Controller' }}
-          />
-          <Stack.Screen
-            name="Receiver"
-            component={ReceiverScreen}
-            options={{ title: 'Receiver' }}
-          />
-          <Stack.Screen
-            name="Settings"
-            component={SettingsScreen}
-            options={{ title: 'Settings' }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </ESPProvider>
-  // </MultipeerProvider>
+    // <ObjectDetectionProvider>
+      <ESPProvider>
+        <NavigationContainer>
+          <Stack.Navigator
+            initialRouteName="Home"
+            screenOptions={{
+              headerTitleAlign: 'center',
+              headerTransparent: true,
+              headerStyle: {
+                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              },
+              headerTintColor: '#fff',
+              headerTitleStyle: {
+                fontWeight: '700',
+                fontSize: 20
+              },
+              
+            }}>
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{ title: 'Home' }}
+            />
+            <Stack.Screen
+              name="Controller"
+              component={ControllerScreen}
+              options={{ title: 'Controller' }}
+            />
+            <Stack.Screen
+              name="Receiver"
+              component={ReceiverScreen}
+              options={{ title: 'Receiver' }}
+            />
+            <Stack.Screen
+              name="Settings"
+              component={SettingsScreen}
+              options={{ title: 'Settings' }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </ESPProvider>
+    // </ObjectDetectionProvider>
   );
 }
 
