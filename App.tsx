@@ -23,23 +23,8 @@ import { RootStackParamList } from './src/types';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 
-
-// const MODELS: ObjectDetectionConfig = {};
-
 export default function App() {
-  // const models = useObjectDetectionModels({
-  //   assets: MODELS,
-  //   loadDefaultModel: true,
-  //   defaultModelOptions: {
-  //     detectorMode: 'singleImage',
-  //     shouldEnableMultipleObjects: true,
-  //     shouldEnableClassification: true,
-  //   },
-  // });
-  // const { ObjectDetectionProvider } = useObjectDetectionProvider(models);
-
   return (
-    // <ObjectDetectionProvider>
       <ESPProvider>
         <NavigationContainer>
           <Stack.Navigator
@@ -80,7 +65,6 @@ export default function App() {
           </Stack.Navigator>
         </NavigationContainer>
       </ESPProvider>
-    // </ObjectDetectionProvider>
   );
 }
 

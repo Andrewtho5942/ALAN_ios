@@ -9,7 +9,6 @@ import { RootStackParamList } from './types';
 import useEmitterRTC from './EmitterRTC';
 
 import { captureRef } from 'react-native-view-shot';
-// import ObjectDetection from '@infinitered/react-native-mlkit-object-detection';
 
 
 
@@ -56,8 +55,8 @@ export default function ReceiverScreen({ navigation }: Props) {
         result:  'base64',
       })
       const dataUri = `data:image/jpeg;base64,${base64}`
-      // const objects = await (ObjectDetection as any).detect(dataUri)
-      // console.log('detected objects:', objects)
+
+
     } catch (e) {
       console.warn('detectFast error:', e)
     }
