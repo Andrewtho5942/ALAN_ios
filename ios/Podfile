@@ -8,7 +8,6 @@ require Pod::Executable.execute_command('node', ['-p',
   )', __dir__]).strip
 
 platform :ios, '15.5'
-
 # platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
