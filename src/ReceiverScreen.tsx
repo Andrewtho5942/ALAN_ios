@@ -13,7 +13,8 @@ import { initTF, getModel } from './tfSetup.tsx'
 // computer vision imports
 import { captureRef } from 'react-native-view-shot';
 import * as tf from '@tensorflow/tfjs';
-import '@tensorflow/tfjs-react-native'; 
+import '@tensorflow/tfjs-react-native';
+import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import { bundleResourceIO, decodeJpeg } from '@tensorflow/tfjs-react-native';
 
 
@@ -30,6 +31,7 @@ const pc = new RTCPeerConnection({
   iceServers: [], // empty means purely local
 });
 
+let model: any = null;
 
 export default function ReceiverScreen({ navigation }: Props) {
   const [camSide, setCamSide] = useState<'back' | 'front'>('back');
@@ -179,7 +181,6 @@ const runningRef = useRef(true);
       ),
     });
   }, [navigation, camSide]);
-
 
 
 

@@ -1,8 +1,12 @@
-import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs';
 import '@tensorflow/tfjs-react-native';
+import 'react-native-url-polyfill/auto';
+import * as tf from '@tensorflow/tfjs';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 
-let model: any
+console.log(cocoSsd)
+
+let model: any = null;
 
 async function waitWithTimeout<T>(promise: Promise<T>, timeoutMs: number, name: string): Promise<T> {
   let timeoutHandle: NodeJS.Timeout;
@@ -23,7 +27,7 @@ export async function initTF() {
     await waitWithTimeout(tf.ready(), 5000, 'tf.ready()');
 
     console.log('[TF] setting backend to rn-webgl');
-    const success = await waitWithTimeout(tf.setBackend('rn-webgl'), 5000, 'tf.setBackend');
+    const success = await waitWithTimeout(tf.setBackend('cpu'), 5000, 'tf.setBackend');
     if (!success) {
       console.warn('[TF] setBackend returned false, falling back to', tf.getBackend());
     }
