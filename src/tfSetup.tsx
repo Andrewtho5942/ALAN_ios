@@ -1,10 +1,8 @@
-import '@tensorflow/tfjs';
+
 import '@tensorflow/tfjs-react-native';
-import 'react-native-url-polyfill/auto';
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs'; 
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 
-console.log(cocoSsd)
 
 let model: any = null;
 
@@ -22,6 +20,8 @@ async function waitWithTimeout<T>(promise: Promise<T>, timeoutMs: number, name: 
 
 export async function initTF() {
   try {
+  
+
     console.log('Registered backends:', Object.keys(tf.engine().registry));
     console.log('[TF] waiting for tf.ready()');
     await waitWithTimeout(tf.ready(), 5000, 'tf.ready()');

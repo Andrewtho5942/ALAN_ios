@@ -38,7 +38,8 @@
     "react-native-view-shot": "^4.0.3",
     "react-native-vision-camera": "^4.6.4",
     "react-native-webrtc": "^124.0.5",
-    "react-native-zeroconf": "^0.13.8"
+    "react-native-zeroconf": "^0.13.8",
+    "expo": "~53.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

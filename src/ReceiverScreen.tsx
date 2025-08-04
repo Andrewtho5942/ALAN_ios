@@ -18,7 +18,6 @@ import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import { bundleResourceIO, decodeJpeg } from '@tensorflow/tfjs-react-native';
 
 
-
 type Props = NativeStackScreenProps<RootStackParamList, 'Receiver'>
 
 import {
