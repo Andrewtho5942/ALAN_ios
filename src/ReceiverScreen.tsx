@@ -7,10 +7,12 @@ import { mediaDevices, RTCView  } from 'react-native-webrtc';
 import { useESP } from './ESPContext';
 import { RootStackParamList } from './types';
 import useEmitterRTC from './EmitterRTC';
-import { initTF, getModel } from './tfSetup.tsx'
+// import { initTF, getModel } from './tfSetup.tsx'
 
 // computer vision imports
 import { captureRef } from 'react-native-view-shot';
+
+import Tflite from 'react-native-tflite';
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Receiver'>
@@ -26,6 +28,45 @@ const pc = new RTCPeerConnection({
 });
 
 
+async function runInference() {
+  console.log('runInference start');
+  const tflite = new Tflite();
+  console.log('→ Tflite instance created:', tflite);
+
+  console.log('loading model…');
+  tflite.loadModel(
+    {
+      model: 'MobileNet-v2.tflite',   
+    },
+    (err: any, res: any) => {
+      if (err) {
+        console.error('loadModel error:', err);
+        return;
+      }
+      console.log('loadModel result:', res);
+
+      // now that the model is loaded, run your inference
+      console.log('running inference on image…');
+      tflite.runModelOnImage(
+        {
+          path: 'bball.jpg',    // put your image in the same bundle folder
+          imageMean: 127.5,
+          imageStd: 127.5,
+          numResults: 5,
+          threshold: 0.1,
+        },
+        (err2: any, out: any) => {
+          if (err2) {
+            console.error('runModelOnImage error:', err2);
+          } else {
+            console.log('runModelOnImage results:', out);
+          }
+        }
+      );
+    }
+  );
+}
+
 export default function ReceiverScreen({ navigation }: Props) {
   const [camSide, setCamSide] = useState<'back' | 'front'>('back');
   const [zoom, setZoom] = useState<any>(1.0);
@@ -35,7 +76,7 @@ export default function ReceiverScreen({ navigation }: Props) {
   const streamRef = useRef<any>(null);
   const viewCamRef = useRef<View>(null);
 
-
+  runInference()
 
 
   useEffect(() => {
