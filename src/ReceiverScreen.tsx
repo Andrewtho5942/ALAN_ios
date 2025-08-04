@@ -4,18 +4,12 @@ import { Camera, useCameraDevice } from 'react-native-vision-camera'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { mediaDevices, RTCView  } from 'react-native-webrtc';
 
-// custom modules
 import { useESP } from './ESPContext';
 import { RootStackParamList } from './types';
 import useEmitterRTC from './EmitterRTC';
-import { initTF, getModel } from './tfSetup.tsx'
 
-// computer vision imports
 import { captureRef } from 'react-native-view-shot';
-import * as tf from '@tensorflow/tfjs';
-import '@tensorflow/tfjs-react-native';
-import * as cocoSsd from '@tensorflow-models/coco-ssd';
-import { bundleResourceIO, decodeJpeg } from '@tensorflow/tfjs-react-native';
+
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Receiver'>
@@ -30,7 +24,6 @@ const pc = new RTCPeerConnection({
   iceServers: [], // empty means purely local
 });
 
-let model: any = null;
 
 export default function ReceiverScreen({ navigation }: Props) {
   const [camSide, setCamSide] = useState<'back' | 'front'>('back');
@@ -41,62 +34,33 @@ export default function ReceiverScreen({ navigation }: Props) {
   const streamRef = useRef<any>(null);
   const viewCamRef = useRef<View>(null);
 
-const runningRef = useRef(true);
 
   useEffect(() => {
-    (
-      async () => {
-      console.log('test')
+    // run once immediately
+    detectFast(viewCamRef)
 
-      await initTF();
-      console.log('starting loop')
+    // then every 5s
+    const id = setInterval(() => detectFast(viewCamRef), 5_000)
+    return () => clearInterval(id)
+  }, [])  
+  
+  async function detectFast(ref: React.RefObject<View | null>) {
+    if (!ref.current) return
+    try {
+      const base64 = await captureRef(ref.current, {
+        format:  'jpg',
+        quality: 0.6,
+        width:   320,
+        height:  240,
+        result:  'base64',
+      })
+      const dataUri = `data:image/jpeg;base64,${base64}`
 
-      while (runningRef.current) {
-        console.log('looping')
 
-        if (!viewCamRef.current) {
-          await new Promise(r => setTimeout(r, 100));
-          continue;
-        }
-
-        try {
-          const base64 = await captureRef(viewCamRef.current, {
-            format: 'jpg',
-            quality: 0.5,
-            width: 320,
-            height: 240,
-            result: 'base64',
-          });
-          const raw = tf.util.encodeString(base64, 'base64').buffer as ArrayBuffer;
-          const imageTensor = decodeJpeg(new Uint8Array(raw)); // height,width,3
-          const input = imageTensor.expandDims(0).toFloat().div(255);
-
-          const model = getModel();
-          
-          let predictions;
-          if (model.detect) {
-            predictions = await model.detect(imageTensor as any);
-          } else if (model.executeAsync) {
-            predictions = await model.executeAsync(input as any);
-          }
-
-          console.log('Predictions:', predictions);
-
-          // cleanup
-          input.dispose();
-          imageTensor.dispose();
-        } catch (e) {
-          console.warn('detection failed', e);
-        }
-
-        await new Promise(r => setTimeout(r, 200)); // throttle to ~5fps
-      }
-    })();
-
-    return () => {
-      runningRef.current = false;
-    };
-  }, []);
+    } catch (e) {
+      console.warn('detectFast error:', e)
+    }
+  }
 
 
 

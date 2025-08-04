@@ -1,3 +1,4 @@
+// App.tsx
 import React, { createContext, useContext } from 'react';
 import { Button, Text, View, StyleSheet } from 'react-native';
 import { NavigationContainer, RouteProp } from '@react-navigation/native';
