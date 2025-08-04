@@ -19,7 +19,8 @@ end
 
 target 'ALAN_ios' do
   config = use_native_modules!
-
+  
+  
   use_react_native!(
     :path => config[:reactNativePath],
     hermes_enabled: true,
@@ -28,6 +29,17 @@ target 'ALAN_ios' do
 
   post_install do |installer|
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
+    installer.pods_project.targets.each do |target|
+      if target.name == 'ALAN_ios'
+        ct = target.resources_build_phase
+        f = installer.pods_project.new_file('ios/ALAN_ios/MobileNet-v2.tflite')
+        f2 = installer.pods_project.new_file('ios/ALAN_ios/bball.jpg')
+        
+        ct.add_file_reference(f)
+        ct.add_file_reference(f2)
+      end
+    end
+    
     react_native_post_install(
       installer,
       config[:reactNativePath],
