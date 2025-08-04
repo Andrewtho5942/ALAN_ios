@@ -32,6 +32,7 @@
     "react-native-sensors": "^7.3.6",
     "react-native-sound": "^0.11.2",
     "react-native-tcp-socket": "^6.3.0",
+    "react-native-tflite": "^0.0.2",
     "react-native-view-shot": "^4.0.3",
     "react-native-vision-camera": "^4.6.4",
     "react-native-webrtc": "^124.0.5",

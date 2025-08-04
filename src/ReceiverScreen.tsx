@@ -11,10 +11,7 @@ import { initTF, getModel } from './tfSetup.tsx'
 
 // computer vision imports
 import { captureRef } from 'react-native-view-shot';
-import * as tf from '@tensorflow/tfjs';
-import '@tensorflow/tfjs-react-native';
-import * as cocoSsd from '@tensorflow-models/coco-ssd';
-import { bundleResourceIO, decodeJpeg } from '@tensorflow/tfjs-react-native';
+
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Receiver'>
 
@@ -38,62 +35,6 @@ export default function ReceiverScreen({ navigation }: Props) {
   const streamRef = useRef<any>(null);
   const viewCamRef = useRef<View>(null);
 
-const runningRef = useRef(true);
-
-  useEffect(() => {
-    (
-      async () => {
-      console.log('test')
-
-      await initTF();
-      console.log('starting loop')
-
-      while (runningRef.current) {
-        console.log('looping')
-
-        if (!viewCamRef.current) {
-          await new Promise(r => setTimeout(r, 100));
-          continue;
-        }
-
-        try {
-          const base64 = await captureRef(viewCamRef.current, {
-            format: 'jpg',
-            quality: 0.5,
-            width: 320,
-            height: 240,
-            result: 'base64',
-          });
-          const raw = tf.util.encodeString(base64, 'base64').buffer as ArrayBuffer;
-          const imageTensor = decodeJpeg(new Uint8Array(raw)); // height,width,3
-          const input = imageTensor.expandDims(0).toFloat().div(255);
-
-          const model = getModel();
-          
-          let predictions;
-          if (model.detect) {
-            predictions = await model.detect(imageTensor as any);
-          } else if (model.executeAsync) {
-            predictions = await model.executeAsync(input as any);
-          }
-
-          console.log('Predictions:', predictions);
-
-          // cleanup
-          input.dispose();
-          imageTensor.dispose();
-        } catch (e) {
-          console.warn('detection failed', e);
-        }
-
-        await new Promise(r => setTimeout(r, 200)); // throttle to ~5fps
-      }
-    })();
-
-    return () => {
-      runningRef.current = false;
-    };
-  }, []);
 
 
 
