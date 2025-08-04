@@ -14,6 +14,11 @@ import { captureRef } from 'react-native-view-shot';
 
 import Tflite from 'react-native-tflite';
 
+import RNFS from 'react-native-fs';
+const path = RNFS.MainBundlePath + '/MobileNet-v2.tflite';
+RNFS.exists(path).then(exists =>
+  console.log('model bundled?', exists)
+);
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Receiver'>
 
