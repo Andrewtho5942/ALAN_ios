@@ -31,12 +31,9 @@ const pc = new RTCPeerConnection({
 
 async function runInference() {
 
-console.log(
-  'TFLite exists in bundle?',
-  await RNFS.exists(
-    `${RNFS.MainBundlePath}/MobileNet-v2.tflite`
-  )
-);
+console.log('TFLite exists in bundle?', await RNFS.exists(`${RNFS.MainBundlePath}/MobileNet-v2.tflite`));
+console.log('labels.txt exists in bundle?', await RNFS.exists(`${RNFS.MainBundlePath}/labels.txt`));
+
   console.log('runInference start');
   const tflite = new Tflite();
   console.log('→ Tflite instance created:', tflite);
