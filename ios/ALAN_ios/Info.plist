@@ -4,13 +4,13 @@
 <dict>
 	<key>UIBackgroundModes</key>
 	<array>
-	<string>bluetooth-central</string>
+		<string>bluetooth-central</string>
 	</array>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>BLE signaling channel</string>
 	<key>NSBonjourServices</key>
 	<array>
-	<string>_my-signaling._tcp</string>
+		<string>_my-signaling._tcp</string>
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Peer devices on your local network</string>
@@ -20,7 +20,6 @@
 	<string>We need camera access to stream video.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We need microphone access for audio streaming.</string>
-	
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -44,25 +43,20 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
-<dict>
-  <!-- allow all HTTP loads (quick & dirty) -->
-  <!-- <key>NSAllowsArbitraryLoads</key>
-  <true/> -->
-  
-  <!-- or, more securely, only allow your Metro host: -->
-  <key>NSExceptionDomains</key>
-  <dict>
-    <key>100.68.78.107</key>
-    <dict>
-      <key>NSExceptionAllowsInsecureHTTPLoads</key>
-      <true/>
-      <key>NSIncludesSubdomains</key>
-      <true/>
-    </dict>
-	</dict>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>100.68.78.107</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

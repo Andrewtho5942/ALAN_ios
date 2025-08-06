@@ -14,11 +14,6 @@ import { captureRef } from 'react-native-view-shot';
 
 import Tflite from 'react-native-tflite';
 
-import RNFS from 'react-native-fs';
-const path = RNFS.MainBundlePath + '/MobileNet-v2.tflite';
-RNFS.exists(path).then(exists =>
-  console.log('model bundled?', exists)
-);
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Receiver'>
 
@@ -34,6 +29,7 @@ const pc = new RTCPeerConnection({
 
 
 async function runInference() {
+
   console.log('runInference start');
   const tflite = new Tflite();
   console.log('→ Tflite instance created:', tflite);
@@ -41,7 +37,7 @@ async function runInference() {
   console.log('loading model…');
   tflite.loadModel(
     {
-      model: 'MobileNet-v2.tflite',   
+      model: 'modelPath',   
     },
     (err: any, res: any) => {
       if (err) {
@@ -54,7 +50,7 @@ async function runInference() {
       console.log('running inference on image…');
       tflite.runModelOnImage(
         {
-          path: 'bball.jpg',    // put your image in the same bundle folder
+          path: 'testImage',    // put your image in the same bundle folder
           imageMean: 127.5,
           imageStd: 127.5,
           numResults: 5,

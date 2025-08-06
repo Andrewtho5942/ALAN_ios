@@ -35,16 +35,16 @@ target 'ALAN_ios' do
       # :ccache_enabled => true
     )
 
-    installer.pods_project.targets.each do |target|
-      if target.name == 'ALAN_ios'
-        resources_phase = target.resources_build_phase
+    # installer.pods_project.targets.each do |target|
+    #   if target.name == 'ALAN_ios'
+    #     resources_phase = target.resources_build_phase
 
-        file_ref    = installer.pods_project.new_file(File.join(__dir__, 'ALAN_ios', 'MobileNet-v2.tflite'))
-        file2_ref    = installer.pods_project.new_file(File.join(__dir__, 'ALAN_ios', 'bball.jpg'))
+    #     file_ref    = installer.pods_project.new_file(File.join(__dir__, 'ALAN_ios', 'MobileNet-v2.tflite'))
+    #     file2_ref    = installer.pods_project.new_file(File.join(__dir__, 'ALAN_ios', 'bball.jpg'))
 
-        resources_phase.add_file_reference(file_ref)
-        resources_phase.add_file_reference(file2_ref)
-      end
-    end
+    #     resources_phase.add_file_reference(file_ref)
+    #     resources_phase.add_file_reference(file2_ref)
+    #   end
+    # end
   end
 end
