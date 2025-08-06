@@ -13,6 +13,7 @@ import useEmitterRTC from './EmitterRTC';
 import { captureRef } from 'react-native-view-shot';
 
 import Tflite from 'react-native-tflite';
+import RNFS from 'react-native-fs';
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Receiver'>
@@ -30,6 +31,12 @@ const pc = new RTCPeerConnection({
 
 async function runInference() {
 
+console.log(
+  'TFLite exists in bundle?',
+  await RNFS.exists(
+    `${RNFS.MainBundlePath}/MobileNet-v2.tflite`
+  )
+);
   console.log('runInference start');
   const tflite = new Tflite();
   console.log('→ Tflite instance created:', tflite);
@@ -37,7 +44,8 @@ async function runInference() {
   console.log('loading model…');
   tflite.loadModel(
     {
-      model: 'modelPath',   
+      model: `${RNFS.MainBundlePath}/MobileNet-v2.tflite`, 
+      labels: `${RNFS.MainBundlePath}/labels.txt`,  
     },
     (err: any, res: any) => {
       if (err) {
@@ -46,11 +54,11 @@ async function runInference() {
       }
       console.log('loadModel result:', res);
 
-      // now that the model is loaded, run your inference
+      // now that the model is loaded, run inference
       console.log('running inference on image…');
       tflite.runModelOnImage(
         {
-          path: 'testImage',    // put your image in the same bundle folder
+          path: `${RNFS.MainBundlePath}/bball.jpg`,
           imageMean: 127.5,
           imageStd: 127.5,
           numResults: 5,
@@ -77,7 +85,9 @@ export default function ReceiverScreen({ navigation }: Props) {
   const streamRef = useRef<any>(null);
   const viewCamRef = useRef<View>(null);
 
-  runInference()
+  useEffect(() => {
+    runInference();
+  }, []);
 
 
   useEffect(() => {
