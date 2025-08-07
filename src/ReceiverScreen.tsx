@@ -16,6 +16,13 @@ import Tflite from 'react-native-tflite';
 import RNFS from 'react-native-fs';
 
 
+import { NativeModules } from 'react-native';
+console.log('NativeModules: ', NativeModules)
+console.log('NativeModules.Tflite: ', NativeModules.Tflite)
+console.log('Tflite: ', Tflite)
+
+
+
 type Props = NativeStackScreenProps<RootStackParamList, 'Receiver'>
 
 import {

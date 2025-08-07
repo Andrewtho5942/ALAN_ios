@@ -23,6 +23,10 @@ jobs:
     - name: Install JS dependencies
       run: npm install
 
+    # 3.5 patch tflite
+    - name: Patch TFLite
+      run: npm run postinstall
+
     # 4. Install CocoaPods in the ios/ directory
     - name: Install CocoaPods
       working-directory: ios
