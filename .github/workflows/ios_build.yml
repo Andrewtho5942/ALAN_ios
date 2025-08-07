@@ -19,13 +19,11 @@ jobs:
       with:
         node-version: '18'
 
-    # 3. Install NPM dependencies
+    # 3. Install and patch NPM dependencies
     - name: Install JS dependencies
-      run: npm install
-
-    # 3.5 patch tflite
-    - name: Patch TFLite
-      run: npm run postinstall
+      run: |
+        npm install
+        npm run postinstall
 
     # 4. Install CocoaPods in the ios/ directory
     - name: Install CocoaPods
