@@ -18,7 +18,7 @@ if linkage != nil
 end
 
 target 'ALAN_ios' do
-  pod 'react-native-tflite', :path => '../node_modules/react-native-tflite'
+  # pod 'react-native-tflite', :path => '../node_modules/react-native-tflite'
   config = use_native_modules!
   
   

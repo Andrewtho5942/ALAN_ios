@@ -21,13 +21,34 @@ jobs:
 
     # 3. Install and patch NPM dependencies
     - name: Install JS dependencies
+      run: npm install
+    
+    # 3.5 Directly patch tflite
+    - name: Write missing podspec (failsafe)
       run: |
-        npm install
-        npm run postinstall
+        cat <<EOF > node_modules/react-native-tflite/react-native-tflite.podspec
+        require 'json'
+        package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
+        Pod::Spec.new do |s|
+          s.name         = 'react-native-tflite'
+          s.version      = package['version']
+          s.summary      = package['description']
+          s.description  = package['description']
+          s.homepage     = package['repository']['url']
+          s.license      = 'MIT'
+          s.author       = package['author']
+          s.source       = { :git => package['repository']['url'], :tag => "v#{s.version}" }
+          s.platform     = :ios, '9.0'
+          s.source_files = 'ios/**/*.{h,m,mm}'
+          s.requires_arc = true
+          s.dependency 'React-Core'
+        end
+        EOF
 
     # 4. Install CocoaPods in the ios/ directory
     - name: Install CocoaPods
-      run: cd ios && pod install --repo-update
+      working-directory: 'ios'
+      run: pod install --repo-update
 
     # 5. Build unsigned .app with signing disabled
     - name: Build unsigned .app
