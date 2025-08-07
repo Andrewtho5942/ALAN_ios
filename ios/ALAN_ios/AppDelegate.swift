@@ -8,7 +8,7 @@ class AppDelegate: RCTAppDelegate {
     super.init()
     self.moduleName = "ALAN_ios"
     self.initialProps = [:]
-    self.fabricEnabled = false           // force legacy UIManager
+    self.fabricEnabled = false
     self.concurrentRootEnabled = false
   }
 
