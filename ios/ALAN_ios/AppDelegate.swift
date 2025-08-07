@@ -25,7 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 extension AppDelegate: RCTBridgeDelegate {
   func sourceURL(for bridge: RCTBridge!) -> URL! {
 #if DEBUG
-    return URL(string: "http://localhost:8081/index.bundle?platform=ios&dev=true")
+    return URL(string: "http://100.68.78.107:8081/index.bundle?platform=ios&dev=true")
 #else
     return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #endif
