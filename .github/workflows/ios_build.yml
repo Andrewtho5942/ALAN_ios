@@ -25,14 +25,10 @@ jobs:
         npm install
         npm run postinstall
 
-    - name: Confirm podspec is present
-      run: ls -l node_modules/react-native-tflite/react-native-tflite.podspec
-
-
     # 4. Install CocoaPods in the ios/ directory
     - name: Install CocoaPods
-      working-directory: ios
-      run: pod install --repo-update
+      # working-directory: ios
+      run: cd ios && pod install --repo-update
 
     # 5. Build unsigned .app with signing disabled
     - name: Build unsigned .app
