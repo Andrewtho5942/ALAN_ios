@@ -9,18 +9,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    RCTAppSetupPrepareApp(application)
     let bridge = RCTBridge(delegate: self, launchOptions: launchOptions)
     let rootView = RCTRootView(bridge: bridge!, moduleName: "ALAN_ios", initialProperties: nil)
-    rootView.backgroundColor = UIColor.white
+    rootView.backgroundColor = .white
 
-    let rootViewController = UIViewController()
-    rootViewController.view = rootView
+    let rootVC = UIViewController()
+    rootVC.view = rootView
 
-    self.window = UIWindow(frame: UIScreen.main.bounds)
-    self.window?.rootViewController = rootViewController
-    self.window?.makeKeyAndVisible()
-
+    window = UIWindow(frame: UIScreen.main.bounds)
+    window?.rootViewController = rootVC
+    window?.makeKeyAndVisible()
     return true
   }
 }
