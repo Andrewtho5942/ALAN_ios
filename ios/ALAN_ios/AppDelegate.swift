@@ -9,6 +9,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    RCTAppSetupPrepareApp(application)
     let bridge = RCTBridge(delegate: self, launchOptions: launchOptions)
     let rootView = RCTRootView(bridge: bridge!, moduleName: "ALAN_ios", initialProperties: nil)
     rootView.backgroundColor = UIColor.white
