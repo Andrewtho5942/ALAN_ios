@@ -11,6 +11,9 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		F0CD0D67F76844F591A7CBE4 /* bball.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 72196F65F84743BC8145D023 /* bball.jpg */; };
+		BAA61031556A4766A0908E95 /* MobileNet-v2.tflite in Resources */ = {isa = PBXBuildFile; fileRef = CB1C909BA09D4A0B8C19AEAB /* MobileNet-v2.tflite */; };
+		1AEA8AB48E7F46E0AAE17C32 /* labels.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4D2F0B471B1A48AF9CE1D790 /* labels.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +38,9 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = ALAN_ios/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ALAN_ios/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		72196F65F84743BC8145D023 /* bball.jpg */ = {isa = PBXFileReference; name = "bball.jpg"; path = "../src/models/bball.jpg"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		CB1C909BA09D4A0B8C19AEAB /* MobileNet-v2.tflite */ = {isa = PBXFileReference; name = "MobileNet-v2.tflite"; path = "../src/models/MobileNet-v2.tflite"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		4D2F0B471B1A48AF9CE1D790 /* labels.txt */ = {isa = PBXFileReference; name = "labels.txt"; path = "../src/models/labels.txt"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +99,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				EFDBDBAF588B496099AF45BE /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -115,6 +122,17 @@
 			);
 			path = Pods;
 			sourceTree = "<group>";
+		};
+		EFDBDBAF588B496099AF45BE /* Resources */ = {
+			isa = "PBXGroup";
+			children = (
+				72196F65F84743BC8145D023 /* bball.jpg */,
+				CB1C909BA09D4A0B8C19AEAB /* MobileNet-v2.tflite */,
+				4D2F0B471B1A48AF9CE1D790 /* labels.txt */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+			path = "";
 		};
 /* End PBXGroup section */
 
@@ -185,6 +203,9 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				F0CD0D67F76844F591A7CBE4 /* bball.jpg in Resources */,
+				BAA61031556A4766A0908E95 /* MobileNet-v2.tflite in Resources */,
+				1AEA8AB48E7F46E0AAE17C32 /* labels.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -305,7 +326,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.alan.ios";
 				PRODUCT_NAME = ALAN_ios;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -333,7 +354,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.alan.ios";
 				PRODUCT_NAME = ALAN_ios;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
