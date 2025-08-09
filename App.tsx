@@ -1,70 +1,71 @@
 // App.tsx
 import React, { createContext, useContext } from 'react';
 import { Button, Text, View, StyleSheet } from 'react-native';
-import { NavigationContainer, RouteProp } from '@react-navigation/native';
-import {
-  createNativeStackNavigator,
-  NativeStackNavigationProp,
-  NativeStackScreenProps,
-} from '@react-navigation/native-stack';
-import axios from 'axios';
+// import { NavigationContainer, RouteProp } from '@react-navigation/native';
+// import {
+//   createNativeStackNavigator,
+//   NativeStackNavigationProp,
+//   NativeStackScreenProps,
+// } from '@react-navigation/native-stack';
+// import axios from 'axios';
 
 
-import HomeScreen from './src/HomeScreen'
-import ControllerScreen from './src/ControllerScreen'
-import ReceiverScreen from './src/ReceiverScreen'
-import SettingsScreen from './src/SettingsScreen'
-import { ESPProvider } from './src/ESPContext';
-import { RootStackParamList } from './src/types';
+// import HomeScreen from './src/HomeScreen'
+// import ControllerScreen from './src/ControllerScreen'
+// import ReceiverScreen from './src/ReceiverScreen'
+// import SettingsScreen from './src/SettingsScreen'
+// import { ESPProvider } from './src/ESPContext';
+// import { RootStackParamList } from './src/types';
 
 //Start command:
 // npx react-native start METRO_HOST=100.68.78.107
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+// const Stack = createNativeStackNavigator<RootStackParamList>();
 
 
 export default function App() {
   return (
-      <ESPProvider>
-        <NavigationContainer>
-          <Stack.Navigator
-            initialRouteName="Home"
-            screenOptions={{
-              headerTitleAlign: 'center',
-              headerTransparent: true,
-              headerStyle: {
-                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-              },
-              headerTintColor: '#fff',
-              headerTitleStyle: {
-                fontWeight: '700',
-                fontSize: 20
-              },
+    <></>
+      // <ESPProvider>
+      //   <NavigationContainer>
+      //     <Stack.Navigator
+      //       initialRouteName="Home"
+      //       screenOptions={{
+      //         headerTitleAlign: 'center',
+      //         headerTransparent: true,
+      //         headerStyle: {
+      //           backgroundColor: 'rgba(0, 0, 0, 0.4)',
+      //         },
+      //         headerTintColor: '#fff',
+      //         headerTitleStyle: {
+      //           fontWeight: '700',
+      //           fontSize: 20
+      //         },
               
-            }}>
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-              options={{ title: 'Home' }}
-            />
-            <Stack.Screen
-              name="Controller"
-              component={ControllerScreen}
-              options={{ title: 'Controller' }}
-            />
-            <Stack.Screen
-              name="Receiver"
-              component={ReceiverScreen}
-              options={{ title: 'Receiver' }}
-            />
-            <Stack.Screen
-              name="Settings"
-              component={SettingsScreen}
-              options={{ title: 'Settings' }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </ESPProvider>
+      //       }}>
+      //       <Stack.Screen
+      //         name="Home"
+      //         component={HomeScreen}
+      //         options={{ title: 'Home' }}
+      //       />
+      //       <Stack.Screen
+      //         name="Controller"
+      //         component={ControllerScreen}
+      //         options={{ title: 'Controller' }}
+      //       />
+      //       <Stack.Screen
+      //         name="Receiver"
+      //         component={ReceiverScreen}
+      //         options={{ title: 'Receiver' }}
+      //       />
+      //       <Stack.Screen
+      //         name="Settings"
+      //         component={SettingsScreen}
+      //         options={{ title: 'Settings' }}
+      //       />
+      //     </Stack.Navigator>
+      //   </NavigationContainer>
+      // </ESPProvider>
   );
 }
 

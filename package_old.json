@@ -7,11 +7,35 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "postinstall": "patch-package"
   },
   "dependencies": {
+    "@react-navigation/native": "^7.1.10",
+    "@react-navigation/native-stack": "^7.3.14",
+    "@tensorflow/tfjs-react-native": "^1.0.0",
+    "axios": "^1.9.0",
+    "expo-gl": "^13.6.0",
+    "expo-gl-cpp": "^11.4.0",
+    "lodash": "^4.17.21",
     "react": "19.1.0",
-    "react-native": "0.80.2"
+    "react-native": "0.80.2",
+    "react-native-audio-record": "^0.2.2",
+    "react-native-fs": "^2.20.0",
+    "react-native-gesture-handler": "^2.25.0",
+    "react-native-make": "^1.0.1",
+    "react-native-permissions": "^5.4.1",
+    "react-native-reanimated": "^3.18.0",
+    "react-native-safe-area-context": "^5.4.1",
+    "react-native-screens": "^4.11.1",
+    "react-native-sensors": "^7.3.6",
+    "react-native-sound": "^0.11.2",
+    "react-native-tcp-socket": "^6.3.0",
+    "react-native-tflite": "^0.0.2",
+    "react-native-view-shot": "^4.0.3",
+    "react-native-vision-camera": "^4.7.1",
+    "react-native-webrtc": "^124.0.5",
+    "react-native-zeroconf": "^0.13.8"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
