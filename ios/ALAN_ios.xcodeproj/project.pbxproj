@@ -331,6 +331,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
+				SWIFT_OBJC_BRIDGING_HEADER = "ALAN_ios/ALAN_ios-Bridging-Header.h";
 			};
 			name = Debug;
 		};
@@ -357,6 +358,7 @@
 				PRODUCT_NAME = ALAN_ios;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
+				SWIFT_OBJC_BRIDGING_HEADER = "ALAN_ios/ALAN_ios-Bridging-Header.h";
 			};
 			name = Release;
 		};
