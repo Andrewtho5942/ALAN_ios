@@ -11,7 +11,8 @@ target 'ALAN_ios' do
   config = use_native_modules!
   use_react_native!(
     :path => config[:reactNativePath],
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    :fabric_enabled => false
   )
   post_install do |installer|
     react_native_post_install(
