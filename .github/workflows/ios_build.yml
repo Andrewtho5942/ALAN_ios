@@ -23,13 +23,19 @@ jobs:
     - name: Install JS dependencies
       run: npm install
 
-
-    # 4. Install CocoaPods in the ios/ directory
-    - name: Install CocoaPods
-      working-directory: ios
+    - name: Install Dependencies and Show Build Settings
       run: |
+        cd ios
         pod deintegrate
         pod install
+        echo "--- All dependencies installed. Now showing build settings. ---"
+        xcodebuild -workspace ALAN_ios.xcworkspace -scheme ALAN_ios -showBuildSettings
+    # # 4. Install CocoaPods in the ios/ directory
+    # - name: Install CocoaPods
+    #   working-directory: ios
+    #   run: |
+    #     pod deintegrate
+    #     pod install
 
     # 5. Build unsigned .app with signing disabled
     - name: Build unsigned .app
