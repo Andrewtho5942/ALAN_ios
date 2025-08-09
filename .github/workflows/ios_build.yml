@@ -42,7 +42,7 @@ jobs:
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGNING_ALLOWED=NO \
-          BUILD_DIR=$PWD/build clean build
+          clean build
 
     # 6. Package the .app into an unsigned IPA
     - name: Package unsigned IPA
