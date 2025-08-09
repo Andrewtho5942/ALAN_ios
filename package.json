@@ -33,6 +33,7 @@
     "react-native-tcp-socket": "^6.3.0",
     "react-native-tflite": "^0.0.2",
     "react-native-view-shot": "^4.0.3",
+    "react-native-vision-camera": "^4.7.1",
     "react-native-webrtc": "^124.0.5",
     "react-native-zeroconf": "^0.13.8"
   },
