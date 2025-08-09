@@ -26,8 +26,10 @@ jobs:
 
     # 4. Install CocoaPods in the ios/ directory
     - name: Install CocoaPods
-      working-directory: 'ios'
-      run: pod install --repo-update
+      working-directory: ios
+      run: |
+        pod deintegrate
+        pod install
 
     # 5. Build unsigned .app with signing disabled
     - name: Build unsigned .app
