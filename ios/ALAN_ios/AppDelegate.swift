@@ -1,31 +1,31 @@
 import UIKit
-import RCTAppDelegate
 import React
 
-@main
-class AppDelegate: RCTAppDelegate {
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
+  var window: UIWindow?
 
-  private let RNModuleName = "ALAN_ios"
-
-  override init() {
-    super.init()
-    // Force classic (legacy) UIManager / bridge behavior
-    // This ensures older native modules and view managers register as expected.
-    self.moduleName = RNModuleName
-    self.initialProps = nil
-    self.fabricEnabled = false
-    self.concurrentRootEnabled = false
-  }
-
-  // Keep the standard delegate behavior from RCTAppDelegate.
-  override func application(
+  func application(
     _ application: UIApplication,
-    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-  }
 
-  override func sourceURL(for bridge: RCTBridge!) -> URL! {
+    let bridge = RCTBridge(delegate: self, launchOptions: launchOptions)
+    let rootView = RCTRootView(bridge: bridge!, moduleName: "ALAN_ios", initialProperties: nil)
+
+    let rootViewController = UIViewController()
+    rootViewController.view = rootView
+
+    window = UIWindow(frame: UIScreen.main.bounds)
+    window?.rootViewController = rootViewController
+    window?.makeKeyAndVisible()
+
+    return true
+  }
+}
+
+extension AppDelegate: RCTBridgeDelegate {
+  func sourceURL(for bridge: RCTBridge!) -> URL! {
 #if DEBUG
     return URL(string: "http://100.68.78.107:8081/index.bundle?platform=ios&dev=true")
 #else
