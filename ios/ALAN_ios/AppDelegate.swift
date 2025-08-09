@@ -1,30 +1,20 @@
 import UIKit
+import RCTAppDelegate
 import React
 
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-  var window: UIWindow?
+@main
+class AppDelegate: RCTAppDelegate {
+  override init() {
+    super.init()
+    self.moduleName = "ALAN_ios"
+    self.initialProps = [:]
 
-  func application(
-    _ application: UIApplication,
-    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
-  ) -> Bool {
-    let bridge = RCTBridge(delegate: self, launchOptions: launchOptions)
-    let rootView = RCTRootView(bridge: bridge!, moduleName: "ALAN_ios", initialProperties: nil)
-    rootView.backgroundColor = .white
-
-    let rootVC = UIViewController()
-    rootVC.view = rootView
-
-    window = UIWindow(frame: UIScreen.main.bounds)
-    window?.rootViewController = rootVC
-    window?.makeKeyAndVisible()
-    return true
+    // New Architecture runtime features
+    self.fabricEnabled = true
+    self.concurrentRootEnabled = true
   }
-}
 
-extension AppDelegate: RCTBridgeDelegate {
-  func sourceURL(for bridge: RCTBridge!) -> URL! {
+  override func sourceURL(for bridge: RCTBridge!) -> URL! {
 #if DEBUG
     return URL(string: "http://100.68.78.107:8081/index.bundle?platform=ios&dev=true")
 #else
