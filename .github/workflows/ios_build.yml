@@ -24,8 +24,9 @@ jobs:
       run: npm install
 
     - name: Install Dependencies and Show Build Settings
+      working-directory: ios
       run: |
-        cd ios
+        export RCT_NEW_ARCH_ENABLED=0
         pod deintegrate
         pod install
         echo "--- All dependencies installed. Now showing build settings. ---"
