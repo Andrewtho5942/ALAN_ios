@@ -1,35 +1,25 @@
-import UIKit
 import React
+import UIKit
 
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-  var window: UIWindow?
+@main
+class AppDelegate: RCTAppDelegate {
 
-  func application(
+  override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-
-    let bridge = RCTBridge(delegate: self, launchOptions: launchOptions)
-    let rootView = RCTRootView(bridge: bridge!, moduleName: "ALAN_ios", initialProperties: nil)
-
-    let rootViewController = UIViewController()
-    rootViewController.view = rootView
-
-    window = UIWindow(frame: UIScreen.main.bounds)
-    window?.rootViewController = rootViewController
-    window?.makeKeyAndVisible()
-
-    return true
+      return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
-}
 
-extension AppDelegate: RCTBridgeDelegate {
-  func sourceURL(for bridge: RCTBridge!) -> URL! {
-#if DEBUG
-    return URL(string: "http://100.68.78.107:8081/index.bundle?platform=ios&dev=true")
-#else
-    return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
-#endif
+  override func sourceURL(for bridge: RCTBridge!) -> URL! {
+    #if DEBUG
+      return URL(string: "http://100.68.78.107:8081/index.bundle?platform=ios&dev=true")
+    #else
+      return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+    #endif
+  }
+  
+  override func moduleName() -> String! {
+    return "ALAN_ios" 
   }
 }
