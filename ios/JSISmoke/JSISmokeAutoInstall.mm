@@ -1,9 +1,10 @@
+// JSISmokeAutoInstall.mm
 #import <Foundation/Foundation.h>
 #import <React/RCTBridge.h>
 #import "JSISmokeInstaller.h"
 
-// RN posts this when the JS runtime is ready; userInfo[@"bridge"] is the RCTBridge
 extern NSString *const RCTJavaScriptDidLoadNotification;
+extern NSString *const RCTJavaScriptDidLoadNotificationBridgeKey;
 
 @interface JSISmokeAutoInstall : NSObject
 @end
@@ -16,7 +17,7 @@ extern NSString *const RCTJavaScriptDidLoadNotification;
                                              object:nil];
 }
 + (void)onJSLoaded:(NSNotification *)note {
-  RCTBridge *bridge = note.userInfo[@"bridge"];
+  RCTBridge *bridge = note.userInfo[RCTJavaScriptDidLoadNotificationBridgeKey];
   if (bridge) {
     InstallJSISmoke(bridge);
   }
