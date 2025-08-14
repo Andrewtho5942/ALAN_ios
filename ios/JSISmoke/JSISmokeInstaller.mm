@@ -1,10 +1,6 @@
-// JSISmokeInstaller.mm
 #import "JSISmokeInstaller.h"
 
-// Needed for -[RCTBridge runtimeExecutor]
-#import <React/RCTBridge+Private.h>
-// Brings the RuntimeExecutor type into headers (even though we use `auto`)
-#import <ReactCommon/RuntimeExecutor.h>
+#import <React/RCTCxxBridge.h>
 
 #import <jsi/jsi.h>
 
@@ -56,13 +52,15 @@ static void install(Runtime& rt) {
 }
 
 void InstallJSISmoke(RCTBridge *bridge) {
-  if (!bridge) return;
-
-  // Use method call + type-deduction to avoid namespace/type drift.
-  if ([bridge respondsToSelector:@selector(runtimeExecutor)]) {
-    auto executor = [bridge runtimeExecutor];
-    executor([&](Runtime& rt) {
-      install(rt);
-    });
+  if (!bridge) {
+    return;
   }
+  
+  RCTCxxBridge* cxxBridge = (RCTCxxBridge*)bridge;
+  if (!cxxBridge.runtime) {
+    return;
+  }
+
+  jsi::Runtime& runtime = *cxxBridge.runtime;
+  install(runtime);
 }
