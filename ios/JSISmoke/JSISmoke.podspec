@@ -13,7 +13,8 @@ Pod::Spec.new do |s|
   s.source_files = '**/*.{h,mm}'
   s.pod_target_xcconfig = {
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++17',
-    'CLANG_CXX_LIBRARY' => 'libc++'
+    'CLANG_CXX_LIBRARY' => 'libc++',
+    'HEADER_SEARCH_PATHS' => '"$(PODS_ROOT)/Headers/Public/React-Core" "$(PODS_ROOT)/Headers/Public/React-cxxreact"'
   }
   s.dependency 'React-Core'
   s.dependency 'React-cxxreact' 

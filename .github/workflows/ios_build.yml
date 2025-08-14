@@ -27,8 +27,9 @@ jobs:
     - name: Install CocoaPods
       working-directory: ios
       run: |
-        export RCT_NEW_ARCH_ENABLED=0
         pod deintegrate
+        rm -rf Podfile.lock Pods *.xcworkspace
+        rm -rf ~/Library/Developer/Xcode/DerivedData
         pod install
 
     # 5. Build unsigned .app with signing disabled
