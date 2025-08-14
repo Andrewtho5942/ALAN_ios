@@ -16,4 +16,5 @@ Pod::Spec.new do |s|
     'CLANG_CXX_LIBRARY' => 'libc++'
   }
   s.dependency 'React-Core'
+  s.dependency 'React-cxxreact' 
 end
