@@ -5,7 +5,6 @@ console.log('NativeModules: ', NativeModules)
 function App(): React.JSX.Element {
   return (
     <>
-    
     </>
   );
 }

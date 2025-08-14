@@ -40,9 +40,6 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
 
   override func bundleURL() -> URL? {
 #if DEBUG
-    // Hardcode the metro connection URL
-    
-    
     return URL(string: "http://100.68.78.107:8081/index.bundle?platform=ios&dev=true")
     //RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
 #else
