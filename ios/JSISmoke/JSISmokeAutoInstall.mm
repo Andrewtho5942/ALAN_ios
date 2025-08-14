@@ -1,4 +1,3 @@
-// JSISmokeAutoInstall.mm
 #import <Foundation/Foundation.h>
 #import <React/RCTBridge.h>
 #import "JSISmokeInstaller.h"
