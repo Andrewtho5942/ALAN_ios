@@ -20,9 +20,12 @@ import { RootStackParamList } from './src/types';
 import { loadTensorflowModel } from 'react-native-fast-tflite';
 console.log('loadTensorflowModel: ', loadTensorflowModel)
 
-
-//Start command:
+// Start command:
 // npx react-native start METRO_HOST=100.68.78.107
+
+// Bundle asset:
+// npx react-native-asset
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
