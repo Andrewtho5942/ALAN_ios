@@ -8,6 +8,18 @@ import { useESP } from './ESPContext';
 import { RootStackParamList } from './types';
 import useEmitterRTC from './EmitterRTC';
 
+import RNFS from 'react-native-fs';
+
+import { loadTensorflowModel } from 'react-native-fast-tflite';
+
+console.log('loadTensorflowModel: ', loadTensorflowModel);
+
+(async () => {
+  const filePath = `${RNFS.MainBundlePath}/MobileNet-v2.tflite`;
+  const url = `file://${filePath}`; 
+  const model = await loadTensorflowModel({url}, 'core-ml');
+  console.log('model: ', model)
+})();
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Receiver'>
 
