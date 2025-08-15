@@ -17,7 +17,7 @@
     "react": "19.0.0",
     "react-native": "0.79.2",
     "react-native-audio-record": "^0.2.2",
-    "react-native-ble-plx": "^3.5.0",
+    "react-native-fast-tflite": "^1.6.1",
     "react-native-gesture-handler": "^2.25.0",
     "react-native-make": "^1.0.1",
     "react-native-permissions": "^5.4.1",

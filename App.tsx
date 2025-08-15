@@ -17,12 +17,14 @@ import { ESPProvider } from './src/ESPContext';
 import { RootStackParamList } from './src/types';
 // import { MultipeerProvider } from './src/MultipeerContext';
 
+import { loadTensorflowModel } from 'react-native-fast-tflite';
+console.log('loadTensorflowModel: ', loadTensorflowModel)
+
+
 //Start command:
 // npx react-native start METRO_HOST=100.68.78.107
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
-
 
 
 
