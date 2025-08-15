@@ -2,6 +2,14 @@
   "migIndex": 1,
   "data": [
     {
+      "path": "src/models/coco_labels_default.json",
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    {
+      "path": "src/models/EfficientDet-lite0.tflite",
+      "sha1": "eacdb17aa0f4cfbd5fbeac029167ffe0450a9c07"
+    },
+    {
       "path": "src/models/MobileNet-v2.tflite",
       "sha1": "f8128192a5c17d546a871a3deef47a0542bf0523"
     }
