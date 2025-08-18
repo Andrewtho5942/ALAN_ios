@@ -3,11 +3,15 @@
   "data": [
     {
       "path": "src/models/coco_labels_default.json",
-      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+      "sha1": "691268b12b7cc454b0f11bf352f58b2c0e4dfa22"
     },
     {
       "path": "src/models/EfficientDet-lite0.tflite",
       "sha1": "eacdb17aa0f4cfbd5fbeac029167ffe0450a9c07"
+    },
+    {
+      "path": "src/models/EfficientDet-lite2.tflite",
+      "sha1": "dbead02ac69c9ffd7e48039bbb3e20a5ed37f1ca"
     },
     {
       "path": "src/models/MobileNet-v2.tflite",

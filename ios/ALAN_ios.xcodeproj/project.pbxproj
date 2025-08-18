@@ -12,8 +12,9 @@
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		BF3F9AEBAC4E4CC7B0FE9EDC /* MobileNet-v2.tflite in Resources */ = {isa = PBXBuildFile; fileRef = EFAADCFC3CE245938AD5E361 /* MobileNet-v2.tflite */; };
-		0DC469AD8D0848858003B6A7 /* coco_labels_default.json in Resources */ = {isa = PBXBuildFile; fileRef = 18DAEEF876EB4B87BB723B14 /* coco_labels_default.json */; };
 		9351BD0D9C0547F89813868D /* EfficientDet-lite0.tflite in Resources */ = {isa = PBXBuildFile; fileRef = 3ECE7F7072194ED8B1E0C1A7 /* EfficientDet-lite0.tflite */; };
+		D254CA7586D2498282FE8C17 /* coco_labels_default.json in Resources */ = {isa = PBXBuildFile; fileRef = 9345842F68DD48229E8E864A /* coco_labels_default.json */; };
+		E7804E84B65C43C9AA771047 /* EfficientDet-lite2.tflite in Resources */ = {isa = PBXBuildFile; fileRef = E510F337C3AF4039A460B90B /* EfficientDet-lite2.tflite */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,8 +40,9 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ALAN_ios/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		EFAADCFC3CE245938AD5E361 /* MobileNet-v2.tflite */ = {isa = PBXFileReference; name = "MobileNet-v2.tflite"; path = "../src/models/MobileNet-v2.tflite"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		18DAEEF876EB4B87BB723B14 /* coco_labels_default.json */ = {isa = PBXFileReference; name = "coco_labels_default.json"; path = "../src/models/coco_labels_default.json"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 		3ECE7F7072194ED8B1E0C1A7 /* EfficientDet-lite0.tflite */ = {isa = PBXFileReference; name = "EfficientDet-lite0.tflite"; path = "../src/models/EfficientDet-lite0.tflite"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		9345842F68DD48229E8E864A /* coco_labels_default.json */ = {isa = PBXFileReference; name = "coco_labels_default.json"; path = "../src/models/coco_labels_default.json"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		E510F337C3AF4039A460B90B /* EfficientDet-lite2.tflite */ = {isa = PBXFileReference; name = "EfficientDet-lite2.tflite"; path = "../src/models/EfficientDet-lite2.tflite"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,8 +129,9 @@
 			isa = "PBXGroup";
 			children = (
 				EFAADCFC3CE245938AD5E361 /* MobileNet-v2.tflite */,
-				18DAEEF876EB4B87BB723B14 /* coco_labels_default.json */,
 				3ECE7F7072194ED8B1E0C1A7 /* EfficientDet-lite0.tflite */,
+				9345842F68DD48229E8E864A /* coco_labels_default.json */,
+				E510F337C3AF4039A460B90B /* EfficientDet-lite2.tflite */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -204,8 +207,9 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				BF3F9AEBAC4E4CC7B0FE9EDC /* MobileNet-v2.tflite in Resources */,
-				0DC469AD8D0848858003B6A7 /* coco_labels_default.json in Resources */,
 				9351BD0D9C0547F89813868D /* EfficientDet-lite0.tflite in Resources */,
+				D254CA7586D2498282FE8C17 /* coco_labels_default.json in Resources */,
+				E7804E84B65C43C9AA771047 /* EfficientDet-lite2.tflite in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
