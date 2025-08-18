@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useLayoutEffect, useRef, useMemo, useCallback } from 'react'
-import { View, Text, StyleSheet, Button, TouchableOpacity, PixelRatio } from 'react-native'
+import { View, Text, Image, StyleSheet, Button, TouchableOpacity, PixelRatio, Vibration, Pressable } from 'react-native'
 import { Camera, useCameraDevice } from 'react-native-vision-camera'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { mediaDevices, RTCView } from 'react-native-webrtc';
@@ -7,6 +7,7 @@ import { mediaDevices, RTCView } from 'react-native-webrtc';
 import { useESP } from './ESPContext';
 import { RootStackParamList } from './types';
 import useEmitterRTC from './EmitterRTC';
+import { GreedyTracker, Track, Det } from './tracker';
 
 import RNFS from 'react-native-fs';
 
@@ -20,18 +21,15 @@ const filePath = `${RNFS.MainBundlePath}/EfficientDet-lite0.tflite`;
 const url = `file://${filePath}`;
 
  const model_labels = ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train",
-  "truck", "boat", "traffic light", "fire hydrant", "???",
-  "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep",
-  "cow", "elephant", "bear", "zebra", "giraffe", "???", "backpack",
-  "umbrella", "???", "???", "handbag", "tie", "suitcase", "frisbee",
-  "skis", "snowboard", "sports ball", "kite",
-  "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket",
-  "bottle", "???", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
-  "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
-  "hot dog", "pizza", "donut", "cake", "chair", "couch",
-  "potted plant", "bed", "???", "dining table", "???", "???",
-  "toilet", "???", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
-  "microwave", "oven", "toaster", "sink", "refrigerator", "???", "book",
+  "truck", "boat", "traffic light", "fire hydrant", "???", "stop sign", "parking meter", 
+  "bench", "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", 
+  "giraffe", "???", "backpack", "umbrella", "???", "???", "handbag", "tie", "suitcase", 
+  "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove",
+  "skateboard", "surfboard", "tennis racket", "bottle", "???", "wine glass", "cup", "fork", 
+  "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
+  "hot dog", "pizza", "donut", "cake", "chair", "couch", "potted plant", "bed", "???", 
+  "dining table", "???", "???", "toilet", "???", "tv", "laptop", "mouse", "remote", "keyboard", 
+  "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "???", "book",
   "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush"
 ]
 
@@ -50,9 +48,11 @@ const pc = new RTCPeerConnection({
 
 
 export default function ReceiverScreen({ navigation }: Props) {
+  const trackerRef = useRef(new GreedyTracker());
+  const [tracks, setTracks] = useState<Track[]>([]);
+
   const viewShotRef = useRef<View>(null);
-  const [boxes, setBoxes] = useState<any>([]);
-  // const [overlaySize, setOverlaySize] = useState({width:0, height:0});
+
   const busyRef = useRef(false);
   const modelRef = useRef<ReturnType<typeof loadTensorflowModel> extends Promise<infer T> ? T : any | null>(null);
   const sizeRef = useRef({ w: 0, h: 0 });
@@ -90,8 +90,7 @@ export default function ReceiverScreen({ navigation }: Props) {
     try {
       if (!modelRef.current || !viewShotRef.current) return;
 
-      // Read shape + dtype directly from the model
-      const inputInfo = modelRef.current.inputs[0]; // { name, dataType, shape: [1, H, W, C] }
+      const inputInfo = modelRef.current.inputs[0];
       const [, H, W, C] = inputInfo.shape;
       if (C !== 3) throw new Error(`Unsupported channels: expected 3, got ${C}`);
 
@@ -111,7 +110,7 @@ export default function ReceiverScreen({ navigation }: Props) {
         return;
       }
 
-      // Build input tensor exactly matching model spec
+      // Build input tensor exactly matching model specs
       let input: Float32Array | Uint8Array;
       if (inputInfo.dataType === 'float32') {
         const buf = new Float32Array(W * H * 3);
@@ -138,35 +137,55 @@ export default function ReceiverScreen({ navigation }: Props) {
       const boxes = outs[0];
       const classes = outs[1];
       const scores = outs[2];
-      const count = Math.min((outs[3] as Float32Array)[0] | 0, scores.length);; // Float32Array length = 1
+      const count = Math.min((outs[3] as Float32Array)[0] | 0, scores.length);
 
-      const threshold = 0.5;
-      const dets = [];
-      for (let i = 0; i < count; i++) {
-        const score = scores[i];
-        if (score < threshold) continue;
+      const threshold = 0.35;
+     const clamp01 = (v:number) => Math.max(0, Math.min(1, v));
+    
+    const dets: Det[] = [];
+    for (let i = 0; i < count; i++) {
+      const score = scores[i] as number;
+      if (score < threshold) continue;
 
-        const id = Math.round(classes[i] as any);
-        const off = i * 4;
-        let w= sizeRef.current.w;
-        let h=sizeRef.current.h;
-        let xmin:any = boxes[off + 1]
-        let ymin:any = boxes[off + 0]
+      const id = Math.round(classes[i] as number);
 
-        let box = {
-        left:  Math.max(0, xmin * w),
-        top:   Math.max(0, ymin * h),
-        width: Math.max(0, (boxes[off + 3] as any - xmin) * w),
-        height:Math.max(0, (boxes[off + 2] as any - ymin) * h),
-        };  
-        
-        let label = model_labels[id]
+      const offset = i * 4;
+      let ymin = boxes[offset + 0] as number;
+      let xmin = boxes[offset + 1] as number;
+      let ymax = boxes[offset + 2] as number;
+      let xmax = boxes[offset + 3] as number;
 
-        dets.push({ id, label, score, box: box });
-      }
+      // clamp and fix any inverted edges
+      ymin = clamp01(ymin);
+      xmin = clamp01(xmin);
+      ymax = clamp01(ymax);
+      xmax = clamp01(xmax);
+      if (ymax < ymin) [ymin, ymax] = [ymax, ymin];
+      if (xmax < xmin) [xmin, xmax] = [xmax, xmin];
 
-      console.log(dets)
-      setBoxes(dets)
+      // drop degenerate boxes
+      const wN = xmax - xmin;
+      const hN = ymax - ymin;
+      if (wN <= 0 || hN <= 0) continue;
+
+      const label = model_labels[id] ?? `class_${id}`;
+
+      dets.push({
+        label,
+        score,
+        box: { ymin, xmin, ymax, xmax },
+      });
+    }
+
+      let trks = trackerRef.current.update(dets, Date.now() / 1000);
+     setTracks(prev => {
+      const lockedById = new Map(prev.map(p => [p.id, p.locked]));
+      return trks.map(t => ({
+          ...t,
+          locked: lockedById.get(t.id) ?? false,
+        })).filter(t => t.confirmed);
+    });
+
     } catch (e: any) {
       console.warn('runSync failed:', e?.message ?? e);
     } finally {
@@ -176,7 +195,7 @@ export default function ReceiverScreen({ navigation }: Props) {
 
 
   useEffect(() => {
-    const id = setInterval(() => { tick().catch(() => { }); }, 100);
+    const id = setInterval(() => { tick().catch(() => { }); }, 25);
     return () => clearInterval(id);
   }, [tick]);
 
@@ -279,28 +298,60 @@ return (
           objectFit="cover"
         />
 
-        <View style={[StyleSheet.absoluteFill, { zIndex: 10 }]} pointerEvents="none">
-         
-          {boxes.map((b:any, i:any) => (
-             <View
-              key={i}
-              style={[
-               
-                { 
-                left: b.box.left, top: b.box.top, width: b.box.width, height: b.box.height,
-                position: 'absolute',
-                borderWidth: 2,
-                borderColor: '#00e913ff',
-                 },
-              ]}
-            >
-              <Text style={styles.tag}>
-                {b.label} {(b.score * 100).toFixed(0)}%
-              </Text>
-            </View> 
-          ))} 
-             
+        <View style={[StyleSheet.absoluteFill, { zIndex: 10 }]}>
+          {tracks.map((t: any) => {
+            const left = t.box.xmin * sizeRef.current.w;
+            const top  = t.box.ymin * sizeRef.current.h;
+            const width  = (t.box.xmax - t.box.xmin) * sizeRef.current.w;
+            const height = (t.box.ymax - t.box.ymin) * sizeRef.current.h;
 
+            return (
+              <React.Fragment key={t.id}>
+
+                <Pressable
+                  onLongPress={() => {
+                    // Update tracks so that they all have locked=false, and flip the track that was pressed
+                    if(!t.locked) {
+                      Vibration.vibrate();
+                    }
+
+                    setTracks(prev =>
+                      prev.map(tr => ({
+                        ...tr,
+                        locked: tr.id === t.id ? !t.locked : false,
+                      }))
+                    );
+                  }}
+                  hitSlop={8}
+                  style={{
+                    position: 'absolute',
+                    left, top, width, height,
+                    borderWidth: t.locked ? 3 : 2,
+                    borderColor: t.locked ? '#ff3b30' : '#00e913',
+                    borderStyle: 'solid',
+                  }}
+                />
+                <View
+                  pointerEvents="none"
+                  style={[
+                    styles.tagRow,
+                    { position: 'absolute', left, top: top - 18, maxWidth: Math.max(0, sizeRef.current.w - left - 4) }
+                  ]}
+                >
+                  <Text numberOfLines={1} ellipsizeMode="clip" style={styles.tagText}>
+                    {t.label} {(t.label_conf * 100).toFixed(0)}%
+                  </Text>
+
+                  {t.locked && (
+                    <Image
+                      source={require('./assets/lock.png')}
+                      style={{ width: 15, height: 15, marginLeft: 4, resizeMode: 'contain' }}
+                    />
+                  )}
+                </View>
+              </React.Fragment>
+            );
+          })}
         </View>
       </View>
     ) : (
@@ -324,12 +375,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
   },
   loadingText: { color: 'white', fontSize: 24 },
-  tag: {
-    position: 'absolute',
-    left: 0, top: -18,
+  tagRow: {
+    flexDirection: 'row',      // side by side
+    alignItems: 'center',       // vertical centering
     paddingHorizontal: 4,
+    height: 16,
+    borderRadius: 2,
     backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  tagText: {
     color: 'white',
     fontSize: 12,
+    flexShrink: 1,             // allow truncation, keeps icon visible
+    includeFontPadding: false, // nicer on Android
   },
 })
