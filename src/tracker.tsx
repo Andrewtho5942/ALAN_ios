@@ -15,7 +15,7 @@ export type Track = {
 };
 
 const IOU_GATE = 0.1;
-const ALPHA = 0.1;
+const ALPHA = 0.7;
 const MAX_MISSES = 5;
 const HITS_TO_CONFIRM = 2;
 

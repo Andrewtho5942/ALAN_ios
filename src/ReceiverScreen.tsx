@@ -88,9 +88,11 @@ export default function ReceiverScreen({ navigation }: Props) {
     busyRef.current = true;
 
     try {
-      if (!modelRef.current || !viewShotRef.current) return;
+      const model = modelRef.current;
+      const view  = viewShotRef.current;
+      if (!model || !view) return
 
-      const inputInfo = modelRef.current.inputs[0];
+      const inputInfo = model.inputs[0];
       const [, H, W, C] = inputInfo.shape;
       if (C !== 3) throw new Error(`Unsupported channels: expected 3, got ${C}`);
 
@@ -100,13 +102,14 @@ export default function ReceiverScreen({ navigation }: Props) {
         format: 'jpg',
         quality: 0.7,
         result: 'base64',
-        width: Math.max(1, W / pr),
-        height: Math.max(1, H / pr),
+        width: W/pr,
+        height: H/pr
       });
 
-      const { width, height, data: rgba } = jpeg.decode(toByteArray(b64), { useTArray: true });
-      if (width !== W || height !== H) {
-        console.warn(`Snapshot size mismatch: got ${width}x${height}, wanted ${W}x${H}`);
+      const { width: srcW, height: srcH, data: rgba } = jpeg.decode(toByteArray(b64), { useTArray: true });
+
+      if ((srcW !== W) || (srcH !== H)) {
+        console.warn(`Snapshot size mismatch: got ${srcW}x${srcH}, wanted ${W}x${H}`);
         return;
       }
 
@@ -132,16 +135,31 @@ export default function ReceiverScreen({ navigation }: Props) {
         throw new Error(`Unsupported input dtype: ${inputInfo.dataType}`);
       }
 
-      const outs = modelRef.current.runSync([input]);
+
+
+      const r = sizeRef.current.w / sizeRef.current.h; // target aspect ratio
+      let contentWFrac = 1, contentHFrac = 1, padXFrac = 0, padYFrac = 0;
+      if (r < 1) {                 // tall screen (portrait)
+        contentWFrac = r;
+        padXFrac = (1 - contentWFrac) / 2;
+      } else if (r > 1) {          // wide screen (landscape/wide)
+        contentHFrac = 1 / r;
+        padYFrac = (1 - contentHFrac) / 2;
+      }
+      const clamp01 = (v:number) => Math.max(0, Math.min(1, v));
+      const unpadX = (x:number) => clamp01((x - padXFrac) / contentWFrac);
+      const unpadY = (y:number) => clamp01((y - padYFrac) / contentHFrac);
+
+
+      const outs = model.runSync([input]);
 
       const boxes = outs[0];
       const classes = outs[1];
       const scores = outs[2];
       const count = Math.min((outs[3] as Float32Array)[0] | 0, scores.length);
 
-      const threshold = 0.35;
-     const clamp01 = (v:number) => Math.max(0, Math.min(1, v));
-    
+      const threshold = 0.5;
+
     const dets: Det[] = [];
     for (let i = 0; i < count; i++) {
       const score = scores[i] as number;
@@ -163,21 +181,41 @@ export default function ReceiverScreen({ navigation }: Props) {
       if (ymax < ymin) [ymin, ymax] = [ymax, ymin];
       if (xmax < xmin) [xmin, xmax] = [xmax, xmin];
 
+      // unletterbox
+      const sxmin = unpadX(xmin);
+      const symin = unpadY(ymin);
+      const sxmax = unpadX(xmax);
+      const symax = unpadY(ymax);
+
       // drop degenerate boxes
-      const wN = xmax - xmin;
-      const hN = ymax - ymin;
-      if (wN <= 0 || hN <= 0) continue;
+      if (sxmax <= sxmin || symax <= symin) continue;
 
       const label = model_labels[id] ?? `class_${id}`;
 
       dets.push({
         label,
         score,
-        box: { ymin, xmin, ymax, xmax },
-      });
+        box: { ymin: symin, xmin: sxmin, ymax: symax, xmax: sxmax },
+        });
     }
 
+    // skip the tracker for debugging
+    // let id=1
+    // setTracks(dets.map(det => ({
+    //     id: id++,
+    //     label: det.label,
+    //     label_conf: det.score,
+    //     box: det.box,
+    //     v: {dx:0, dy:0, ds:0},
+    //     age: 1, hits: 1, misses: 0,
+    //     confirmed: false,
+    //     lastSeenTs: 0,
+    //     locked: false
+    //   })))
+
       let trks = trackerRef.current.update(dets, Date.now() / 1000);
+      console.log(trks)
+
      setTracks(prev => {
       const lockedById = new Map(prev.map(p => [p.id, p.locked]));
       return trks.map(t => ({
@@ -281,8 +319,26 @@ export default function ReceiverScreen({ navigation }: Props) {
 return (
   <View style={styles.container}>
     {stream ? (
+      <>
       <View
-        ref={viewShotRef}
+      ref={viewShotRef}
+      style={{
+        width:  320,
+        height: 320,
+        position: 'absolute',
+        left: -9999, top: -9999,
+        backgroundColor: 'black',
+        overflow: 'hidden',
+      }}
+    >
+      <RTCView
+        style={StyleSheet.absoluteFill}
+        streamURL={stream.toURL()}
+        objectFit="contain"
+      />
+    </View>
+
+    <View
         collapsable={false}
         onLayout={onLayout}
         style={{
@@ -353,7 +409,9 @@ return (
             );
           })}
         </View>
-      </View>
+    </View>
+    </>
+
     ) : (
       <View style={styles.loading}>
         <Text style={styles.loadingText}>Loading camera…</Text>
