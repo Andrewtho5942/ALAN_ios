@@ -14,10 +14,10 @@ export type Track = {
     locked: boolean;
 };
 
-const IOU_GATE = 0.1;
-const ALPHA = 0.7;
-const MAX_MISSES = 5;
-const HITS_TO_CONFIRM = 2;
+const IOU_GATE = 0.1;       // Overlap required to match an object
+const ALPHA = 0.7;          // Controls the window length for averaging. Higher -> more reactive
+const MAX_MISSES = 5;       // Max number of missed matches before the track is dropped
+const HITS_TO_CONFIRM = 2;  // Number of hits to match before a track is confirmed and shown on screen
 
 let nextId = 1;
 
