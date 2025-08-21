@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useLayoutEffect, useRef, useMemo, useCallback } from 'react'
-import { View, Text, Image, StyleSheet, Button, TouchableOpacity, PixelRatio, Vibration, Pressable } from 'react-native'
-import { Camera, useCameraDevice } from 'react-native-vision-camera'
+import React, { useEffect, useState, useLayoutEffect, useRef, useCallback } from 'react'
+import { View, Text, Image, StyleSheet, TouchableOpacity, PixelRatio, Vibration, Pressable } from 'react-native'
+import { Camera } from 'react-native-vision-camera'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { mediaDevices, RTCView } from 'react-native-webrtc';
 
@@ -37,13 +37,10 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Receiver'>
 
 import {
   RTCPeerConnection,
-  RTCSessionDescription,
-  RTCIceCandidate
 } from 'react-native-webrtc';
-import { over } from 'lodash';
 
 const pc = new RTCPeerConnection({
-  iceServers: [], // empty means purely local
+  iceServers: [],
 });
 
 
@@ -52,6 +49,7 @@ export default function ReceiverScreen({ navigation }: Props) {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [lockBox, setLockBox] = useState<any>(null);
   const viewShotRef = useRef<View>(null);
+  const [detectionEnabled, setDetectionEnabled] = useState<boolean>(false);
 
   const busyRef = useRef(false);
   const modelRef = useRef<ReturnType<typeof loadTensorflowModel> extends Promise<infer T> ? T : any | null>(null);
@@ -254,10 +252,20 @@ export default function ReceiverScreen({ navigation }: Props) {
   }, [viewShotRef]);
 
 
-  useEffect(() => {
-    const id = setInterval(() => { tick().catch(() => { }); }, 25);
-    return () => clearInterval(id);
-  }, [tick]);
+useEffect(() => {
+  let intervalId = null;
+  if (detectionEnabled) {
+    intervalId = setInterval(() => {
+      tick().catch(console.error);
+    }, 25);
+  }
+  return () => {
+    if (intervalId) {
+      clearInterval(intervalId);
+      setTracks([]);
+    }
+  };
+}, [detectionEnabled, tick]);
 
 
   const handleControllerCommand = async (cmd: string, value?: any) => {
@@ -309,10 +317,32 @@ export default function ReceiverScreen({ navigation }: Props) {
     navigation.setOptions({
       headerRight: () => (
         <>
+        <TouchableOpacity
+              style={{
+                backgroundColor: 'lightgray',
+                paddingHorizontal: 4,
+                paddingVertical: 4,
+                borderRadius: 4,
+                marginRight:4
+              }}
+              onPress={() => {
+                console.log('detection changed: ', detectionEnabled)
+                setDetectionEnabled(old => {
+                  return !old
+                })
+              }}
+              activeOpacity={0.7}
+            >
+            <Image
+                source={detectionEnabled ? require('./assets/detection_enabled.png') : require('./assets/detection_disabled.png')}
+                style={{ width: 25, height: 25, resizeMode: 'contain' }}
+              />
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={{
               backgroundColor: camSide === 'back' ? '#2080ee' : '#cccc66',
-              paddingHorizontal: 12,
+              paddingHorizontal: 8,
               paddingVertical: 8,
               borderRadius: 4,
             }}
@@ -332,10 +362,9 @@ export default function ReceiverScreen({ navigation }: Props) {
             </Text>
           </TouchableOpacity>
         </>
-
       ),
-    });
-  }, [navigation, camSide]);
+      })
+  }, [navigation, camSide, detectionEnabled]);
 
 
 return (

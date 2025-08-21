@@ -208,7 +208,7 @@ export default function ControllerScreen({ navigation }: Props) {
         <TouchableOpacity
           style={{
             backgroundColor: camSide === 'back' ? '#2080ee' : '#cccc66',
-            paddingHorizontal: 12,
+            paddingHorizontal: 8,
             paddingVertical: 8,
             borderRadius: 4,
           }}
