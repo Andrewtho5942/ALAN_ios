@@ -1,18 +1,4 @@
-export type Box = { ymin:number; xmin:number; ymax:number; xmax:number };
-export type Det = { box: Box; score:number; label:string };
-export type Track = {
-    id:number; 
-    label:string; 
-    label_conf:number;
-    box:Box;
-    v:{dx:number; dy:number; ds:number};
-    age:number;
-    hits:number;
-    misses:number;
-    confirmed:boolean;
-    lastSeenTs:number;
-    locked: boolean;
-};
+import { Box, Det, Track } from './types.tsx'
 
 const IOU_GATE = 0.1;       // Overlap required to match an object
 const ALPHA = 0.7;          // Controls the window length for averaging. Higher -> more reactive

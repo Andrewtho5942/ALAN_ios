@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useLayoutEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Button, TouchableOpacity, Dimensions } from 'react-native'
+import React, { useEffect, useState, useLayoutEffect, useRef, useCallback } from 'react'
+import { View, Text, StyleSheet, Button, TouchableOpacity, Dimensions, Image } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import TcpSocket from 'react-native-tcp-socket';
 import {
@@ -18,7 +18,9 @@ import Animated, {
 
 import Joystick from './Joystick'
 import VerticalSlider from './VerticalSlider'
-import { RootStackParamList } from './types';
+import ObjectBoxes from './ObjectBoxes'
+
+import { RootStackParamList, Track, Det, Box } from './types';
 import { useESP } from './ESPContext';
 
 const EMITTER_IP = '100.67.160.5';
@@ -32,21 +34,29 @@ export default function ControllerScreen({ navigation }: Props) {
   const zoomPopup = useSharedValue(false);
   const [zoom, setZoom] = useState(1)
 
-  
+  const [detectionEnabled, setDetectionEnabled] = useState<boolean>(false);
+  const sizeRef = useRef({ w: 0, h: 0 });
+  const [tracks, setTracks] = useState<Track[]>([]);
+
+
   const [remoteStream, setRemoteStream] = useState<any>(null);
   const { sendToESP } = useESP();
-  const pcRef     = useRef<RTCPeerConnection | null>(null);
+  const pcRef = useRef<RTCPeerConnection | null>(null);
   const socketRef = useRef<TcpSocket.Socket | null>(null);
   const bufferRef = useRef<string>('');
-  const retryTimer  = useRef<NodeJS.Timeout | null>(null);
-  
-  
-  function sendCommand (command:string, value?:any) {
-    socketRef?.current?.write(JSON.stringify({command:command, value:value}) + '\n')
+  const retryTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const onLayout = useCallback((e: any) => {
+    const { width, height } = e.nativeEvent.layout;
+    sizeRef.current = { w: width, h: height };
+  }, []);
+
+  function sendCommand(command: string, value?: any) {
+    socketRef?.current?.write(JSON.stringify({ command: command, value: value }) + '\n')
   }
 
   function joystickOnMove(
-    pos: { x: number; y: number }, 
+    pos: { x: number; y: number },
   ) {
     pos.y = -pos.y
     let l = pos.y + pos.x
@@ -56,16 +66,16 @@ export default function ControllerScreen({ navigation }: Props) {
     r = Math.round((r / maxMag) * 255);
 
     console.log('joystick moved..  pos: ', pos, ' | l: ', l, ' , r: ', r);
-    sendToESP('m', {'l' : l, 'r' : r});
+    sendToESP('m', { 'l': l, 'r': r });
   }
   function sliderOnMove(pos: number) {
     console.log('slider moved: ', pos)
-    sendToESP('s', {'s' : pos});
+    sendToESP('s', { 's': pos });
   }
 
   const handleReceiverCommand = (cmd: string, value?: any) => {
-     if(cmd == 'switchCam') {
-      if(value) {
+    if (cmd == 'switchCam') {
+      if (value) {
         setCamSide(value);
       } else {
         setCamSide(s => s === 'back' ? 'front' : 'back');
@@ -76,8 +86,13 @@ export default function ControllerScreen({ navigation }: Props) {
         return;
       }
       setZoom(value)
-    } else {
-      console.error('ERROR in ControllerScreen: Unrecognized controller command!')
+    }
+    else if (cmd == 'setDetection') {
+      setDetectionEnabled(old => value ?? !old)
+    } else if (cmd == 'updateTracks') {
+      setTracks(value);
+    }  else {
+      console.error(`ERROR in ControllerScreen: Unrecognized controller command of ${cmd}`)
     }
   }
 
@@ -87,7 +102,7 @@ export default function ControllerScreen({ navigation }: Props) {
     console.log('Scheduling reconnect in 2s...');
     retryTimer.current = setTimeout(() => {
       retryTimer.current = null;
-      connect();  
+      connect();
     }, 2000);
   };
 
@@ -114,7 +129,7 @@ export default function ControllerScreen({ navigation }: Props) {
     pcRef.current = pc;
 
     // 2) handle incoming tracks (audio and video)
-     (pc as any).ontrack = (event:any) => {
+    (pc as any).ontrack = (event: any) => {
       if (event.streams && event.streams[0]) {
         setRemoteStream(event.streams[0]);
       }
@@ -124,7 +139,7 @@ export default function ControllerScreen({ navigation }: Props) {
     (pc as any).oniceconnectionstatechange = () => {
       const state = pc.iceConnectionState;
       console.log('ICE state changed to ', state)
-      if (['disconnected','failed'].includes(state)) {
+      if (['disconnected', 'failed'].includes(state)) {
         console.warn('ICE', state, '→ reconnecting');
         setRemoteStream(null);
         scheduleRetry();
@@ -132,10 +147,10 @@ export default function ControllerScreen({ navigation }: Props) {
     };
 
     // 4) send ICE candidates to the client
-    (pc as any).onicecandidate = (candidate:any) => {
+    (pc as any).onicecandidate = (candidate: any) => {
       if (candidate && socketRef.current) {
         socketRef.current.write(
-          JSON.stringify({ type:'candidate', candidate }) + '\n'
+          JSON.stringify({ type: 'candidate', candidate }) + '\n'
         );
       }
     };
@@ -145,7 +160,7 @@ export default function ControllerScreen({ navigation }: Props) {
       { host: EMITTER_IP, port: EMITTER_PORT },
       () => {
         console.log('TCP: connected to emitter')
-         if (retryTimer.current) {
+        if (retryTimer.current) {
           clearTimeout(retryTimer.current);
           retryTimer.current = null;
         }
@@ -153,7 +168,7 @@ export default function ControllerScreen({ navigation }: Props) {
     );
     socketRef.current = socket;
 
-    socket.on('data', (data:string | Buffer) => {
+    socket.on('data', (data: string | Buffer) => {
       bufferRef.current += data.toString();
       const parts = bufferRef.current.split('\n');
       bufferRef.current = parts.pop() || '';
@@ -161,7 +176,7 @@ export default function ControllerScreen({ navigation }: Props) {
         if (!line) continue;
         const msg = JSON.parse(line);
 
-        if(msg.command) {
+        if (msg.command) {
           handleReceiverCommand(msg.command, msg.value)
         }
 
@@ -173,7 +188,7 @@ export default function ControllerScreen({ navigation }: Props) {
               await pc.setLocalDescription(answer);
 
               socket.write(
-                JSON.stringify({ type:'answer', sdp:answer.sdp })+'\n'
+                JSON.stringify({ type: 'answer', sdp: answer.sdp }) + '\n'
               );
 
             });
@@ -205,42 +220,66 @@ export default function ControllerScreen({ navigation }: Props) {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity
-          style={{
-            backgroundColor: camSide === 'back' ? '#2080ee' : '#cccc66',
-            paddingHorizontal: 8,
-            paddingVertical: 8,
-            borderRadius: 4,
-          }}
-          onPress={() => {
-            let newCamSide : ('front' | 'back') = (camSide === 'back' ? 'front' : 'back');
-            setCamSide(newCamSide)
-            if (socketRef.current) {
-              sendCommand('switchCam', newCamSide)
+        <>
+          <TouchableOpacity
+            style={{
+              backgroundColor: 'lightgray',
+              paddingHorizontal: 4,
+              paddingVertical: 4,
+              borderRadius: 4,
+              marginRight: 4
+            }}
+            onPress={() => {
+              sendCommand('setDetection', !detectionEnabled);
+              setDetectionEnabled(old => {
+                return !old
+              })
+            }}
+            activeOpacity={0.7}
+          >
+            <Image
+              source={detectionEnabled ? require('./assets/detection_enabled.png') : require('./assets/detection_disabled.png')}
+              style={{ width: 25, height: 25, resizeMode: 'contain' }}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              backgroundColor: camSide === 'back' ? '#2080ee' : '#cccc66',
+              paddingHorizontal: 8,
+              paddingVertical: 8,
+              borderRadius: 4,
+            }}
+            onPress={() => {
+              let newCamSide: ('front' | 'back') = (camSide === 'back' ? 'front' : 'back');
+              setCamSide(newCamSide);
+              if (socketRef.current) {
+                sendCommand('switchCam', newCamSide);
+              }
             }
             }
-          }
-          activeOpacity={0.7}
-        >
-          <Text style={{ 
-            color: camSide === 'back' ? 'white' : 'black',
-            fontSize: 16 }}>
-            {camSide === 'back' ? 'Back Cam' : 'Front Cam'}
-          </Text>
-        </TouchableOpacity>
+            activeOpacity={0.7}
+          >
+            <Text style={{
+              color: camSide === 'back' ? 'white' : 'black',
+              fontSize: 16
+            }}>
+              {camSide === 'back' ? 'Back Cam' : 'Front Cam'}
+            </Text>
+          </TouchableOpacity>
+        </>
       ),
     });
-  }, [navigation, camSide]);
+  }, [navigation, camSide, detectionEnabled]);
 
- // Shared values
-  const baseScale  = useSharedValue(1);
-  const scale      = useSharedValue(1);
+  // Shared values
+  const baseScale = useSharedValue(1);
+  const scale = useSharedValue(1);
 
   useAnimatedReaction(
     () => scale.value,
     (current, previous) => {
       if (current !== previous) {
-        runOnJS(setZoom)(current)
+        runOnJS(setZoom)(current);
       }
     },
     [scale]
@@ -251,21 +290,21 @@ export default function ControllerScreen({ navigation }: Props) {
       zoomPopup.value = true;
     })
     .onUpdate(e => {
-      scale.value = Math.min(Math.max(baseScale.value * e.scale, 1), 4)
-      runOnJS(sendCommand)('zoomCam', scale.value)
+      scale.value = Math.min(Math.max(baseScale.value * e.scale, 1), 4);
+      runOnJS(sendCommand)('zoomCam', scale.value);
     })
     .onEnd(e => {
       zoomPopup.value = false;
-      
+
     })
 
-    const animatedStyle = useAnimatedStyle(() => ({transform: [{scale: scale.value},],}))
-    const popupStyle = useAnimatedStyle(() => ({opacity: zoomPopup.value ? 1 : 0,}))
+  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value },], }));
+  const popupStyle = useAnimatedStyle(() => ({ opacity: zoomPopup.value ? 1 : 0, }));
   return (
     <GestureHandlerRootView style={styles.container}>
       {remoteStream && (
         <GestureDetector gesture={pinch}>
-          <View style={styles.videoClipper}>
+          <View style={styles.videoClipper} onLayout={onLayout}>
             <Animated.View style={[StyleSheet.absoluteFill, animatedStyle]}>
               <RTCView
                 streamURL={remoteStream.toURL()}
@@ -273,12 +312,20 @@ export default function ControllerScreen({ navigation }: Props) {
                 objectFit="cover"
               />
             </Animated.View>
+
+            <ObjectBoxes
+              tracks={tracks}
+              sizeRef={sizeRef}
+              setTracks={setTracks}
+              sendCommand={sendCommand}
+              isReceiver={false}
+            />
           </View>
         </GestureDetector>
       )}
 
-      <Joystick style={styles.joystick} onMove={joystickOnMove}/>
-      <VerticalSlider style={styles.slider} onMove={sliderOnMove}/>
+      <Joystick style={styles.joystick} onMove={joystickOnMove} />
+      <VerticalSlider style={styles.slider} onMove={sliderOnMove} />
       <Animated.View style={[styles.popup, popupStyle]}>
         <Text style={styles.popupText}>Zoom: {zoom.toFixed(2)}x</Text>
       </Animated.View>
@@ -296,15 +343,15 @@ const styles = StyleSheet.create({
   },
   videoClipper: {
     ...StyleSheet.absoluteFillObject,
-    overflow:     'hidden',
-    alignItems:   'center',   
-    justifyContent: 'center', 
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  loadingText: { color: 'white', fontSize: 18, textAlign: "center", marginTop:100 },
+  loadingText: { color: 'white', fontSize: 18, textAlign: "center", marginTop: 100 },
   joystick: {
     position: 'absolute',
-        right: 50,
-        bottom: 40
+    right: 50,
+    bottom: 40
   },
   slider: {
     position: 'absolute',

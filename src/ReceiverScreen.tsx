@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useLayoutEffect, useRef, useCallback } from 'react'
-import { View, Text, Image, StyleSheet, TouchableOpacity, PixelRatio, Vibration, Pressable } from 'react-native'
+import { View, Text, Image, StyleSheet, TouchableOpacity, PixelRatio, Pressable } from 'react-native'
 import { Camera } from 'react-native-vision-camera'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { mediaDevices, RTCView } from 'react-native-webrtc';
 
 import { useESP } from './ESPContext';
-import { RootStackParamList } from './types';
+import { RootStackParamList, Box, Det, Track } from './types';
 import useEmitterRTC from './EmitterRTC';
-import { GreedyTracker, Track, Det } from './tracker';
+import { GreedyTracker} from './tracker';
+
+import ObjectBoxes from './ObjectBoxes'
 
 import RNFS from 'react-native-fs';
 
@@ -20,15 +22,15 @@ import jpeg from 'jpeg-js';
 const filePath = `${RNFS.MainBundlePath}/EfficientDet-lite0.tflite`;
 const url = `file://${filePath}`;
 
- const model_labels = ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train",
-  "truck", "boat", "traffic light", "fire hydrant", "???", "stop sign", "parking meter", 
-  "bench", "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", 
-  "giraffe", "???", "backpack", "umbrella", "???", "???", "handbag", "tie", "suitcase", 
+const model_labels = ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train",
+  "truck", "boat", "traffic light", "fire hydrant", "???", "stop sign", "parking meter",
+  "bench", "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra",
+  "giraffe", "???", "backpack", "umbrella", "???", "???", "handbag", "tie", "suitcase",
   "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove",
-  "skateboard", "surfboard", "tennis racket", "bottle", "???", "wine glass", "cup", "fork", 
+  "skateboard", "surfboard", "tennis racket", "bottle", "???", "wine glass", "cup", "fork",
   "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
-  "hot dog", "pizza", "donut", "cake", "chair", "couch", "potted plant", "bed", "???", 
-  "dining table", "???", "???", "toilet", "???", "tv", "laptop", "mouse", "remote", "keyboard", 
+  "hot dog", "pizza", "donut", "cake", "chair", "couch", "potted plant", "bed", "???",
+  "dining table", "???", "???", "toilet", "???", "tv", "laptop", "mouse", "remote", "keyboard",
   "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "???", "book",
   "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush"
 ]
@@ -47,7 +49,6 @@ const pc = new RTCPeerConnection({
 export default function ReceiverScreen({ navigation }: Props) {
   const trackerRef = useRef(new GreedyTracker());
   const [tracks, setTracks] = useState<Track[]>([]);
-  const [lockBox, setLockBox] = useState<any>(null);
   const viewShotRef = useRef<View>(null);
   const [detectionEnabled, setDetectionEnabled] = useState<boolean>(false);
 
@@ -62,29 +63,8 @@ export default function ReceiverScreen({ navigation }: Props) {
   const [stream, setStream] = useState<any>(null);
   const streamRef = useRef<any>(null);
 
-  function handleTrackLongPress(t:Track) {
-    if(!t.locked) {
-      Vibration.vibrate();
-      setLockBox({
-        'xmin': t.box.xmin * sizeRef.current.w,
-        'ymin': t.box.ymin * sizeRef.current.h,
-        'xmax': t.box.xmax * sizeRef.current.w,
-        'ymax': t.box.ymax * sizeRef.current.h,
-      });
-    } else {
-      setLockBox(null);
-    }
 
-    // Update tracks so that they all have locked=false, and flip the track that was pressed
-    setTracks(prev =>
-      prev.map(tr => ({
-        ...tr,
-        locked: tr.id === t.id ? !t.locked : false,
-      }))
-    );
-  }
-
- // load the model once
+  // load the model once
   useEffect(() => {
     let cancelled = false;
     loadTensorflowModel({ url }, 'core-ml').then(m => {
@@ -93,15 +73,18 @@ export default function ReceiverScreen({ navigation }: Props) {
     return () => { cancelled = true; };
   }, []);
 
-  const onLayout = useCallback((e:any) => {
-  const { width, height } = e.nativeEvent.layout;
-  sizeRef.current = { w: width, h: height };
+  const onLayout = useCallback((e: any) => {
+    const { width, height } = e.nativeEvent.layout;
+    sizeRef.current = { w: width, h: height };
   }, []);
 
   useEffect(() => {
     streamRef.current = stream;
   }, [stream]);
 
+  useEffect(()=>{
+    sendCommand('updateTracks', tracks)
+  }, [tracks])
 
   const tick = useCallback(async () => {
     if (busyRef.current) return;
@@ -109,7 +92,7 @@ export default function ReceiverScreen({ navigation }: Props) {
 
     try {
       const model = modelRef.current;
-      const view  = viewShotRef.current;
+      const view = viewShotRef.current;
       if (!model || !view) return
 
       const inputInfo = model.inputs[0];
@@ -122,8 +105,8 @@ export default function ReceiverScreen({ navigation }: Props) {
         format: 'jpg',
         quality: 0.7,
         result: 'base64',
-        width: W/pr,
-        height: H/pr
+        width: W / pr,
+        height: H / pr
       });
 
       const { width: srcW, height: srcH, data: rgba } = jpeg.decode(toByteArray(b64), { useTArray: true });
@@ -156,7 +139,6 @@ export default function ReceiverScreen({ navigation }: Props) {
       }
 
 
-
       const r = sizeRef.current.w / sizeRef.current.h; // target aspect ratio
       let contentWFrac = 1, contentHFrac = 1, padXFrac = 0, padYFrac = 0;
       if (r < 1) {                 // portrait
@@ -166,9 +148,9 @@ export default function ReceiverScreen({ navigation }: Props) {
         contentHFrac = 1 / r;
         padYFrac = (1 - contentHFrac) / 2;
       }
-      const clamp01 = (v:number) => Math.max(0, Math.min(1, v));
-      const unpadX = (x:number) => clamp01((x - padXFrac) / contentWFrac);
-      const unpadY = (y:number) => clamp01((y - padYFrac) / contentHFrac);
+      const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+      const unpadX = (x: number) => clamp01((x - padXFrac) / contentWFrac);
+      const unpadY = (y: number) => clamp01((y - padYFrac) / contentHFrac);
 
 
       const outs = model.runSync([input]);
@@ -180,69 +162,68 @@ export default function ReceiverScreen({ navigation }: Props) {
 
       const threshold = 0.5;
 
-    const dets: Det[] = [];
-    for (let i = 0; i < count; i++) {
-      const score = scores[i] as number;
-      if (score < threshold) continue;
+      const dets: Det[] = [];
+      for (let i = 0; i < count; i++) {
+        const score = scores[i] as number;
+        if (score < threshold) continue;
 
-      const id = Math.round(classes[i] as number);
+        const id = Math.round(classes[i] as number);
 
-      const offset = i * 4;
-      let ymin = boxes[offset + 0] as number;
-      let xmin = boxes[offset + 1] as number;
-      let ymax = boxes[offset + 2] as number;
-      let xmax = boxes[offset + 3] as number;
+        const offset = i * 4;
+        let ymin = boxes[offset + 0] as number;
+        let xmin = boxes[offset + 1] as number;
+        let ymax = boxes[offset + 2] as number;
+        let xmax = boxes[offset + 3] as number;
 
-      // clamp and fix any inverted edges
-      ymin = clamp01(ymin);
-      xmin = clamp01(xmin);
-      ymax = clamp01(ymax);
-      xmax = clamp01(xmax);
-      if (ymax < ymin) [ymin, ymax] = [ymax, ymin];
-      if (xmax < xmin) [xmin, xmax] = [xmax, xmin];
+        // clamp and fix any inverted edges
+        ymin = clamp01(ymin);
+        xmin = clamp01(xmin);
+        ymax = clamp01(ymax);
+        xmax = clamp01(xmax);
+        if (ymax < ymin) [ymin, ymax] = [ymax, ymin];
+        if (xmax < xmin) [xmin, xmax] = [xmax, xmin];
 
-      // unletterbox
-      const sxmin = unpadX(xmin);
-      const symin = unpadY(ymin);
-      const sxmax = unpadX(xmax);
-      const symax = unpadY(ymax);
+        // unletterbox
+        const sxmin = unpadX(xmin);
+        const symin = unpadY(ymin);
+        const sxmax = unpadX(xmax);
+        const symax = unpadY(ymax);
 
-      // drop degenerate boxes
-      if (sxmax <= sxmin || symax <= symin) continue;
+        // drop degenerate boxes
+        if (sxmax <= sxmin || symax <= symin) continue;
 
-      const label = model_labels[id] ?? `class_${id}`;
+        const label = model_labels[id] ?? `class_${id}`;
 
-      dets.push({
-        label,
-        score,
-        box: { ymin: symin, xmin: sxmin, ymax: symax, xmax: sxmax },
+        dets.push({
+          label,
+          score,
+          box: { ymin: symin, xmin: sxmin, ymax: symax, xmax: sxmax },
         });
-    }
+      }
 
-    // skip the tracker for debugging
-    // let id=1
-    // setTracks(dets.map(det => ({
-    //     id: id++,
-    //     label: det.label,
-    //     label_conf: det.score,
-    //     box: det.box,
-    //     v: {dx:0, dy:0, ds:0},
-    //     age: 1, hits: 1, misses: 0,
-    //     confirmed: false,
-    //     lastSeenTs: 0,
-    //     locked: false
-    //   })))
+      // skip the tracker for debugging
+      // let id=1
+      // setTracks(dets.map(det => ({
+      //     id: id++,
+      //     label: det.label,
+      //     label_conf: det.score,
+      //     box: det.box,
+      //     v: {dx:0, dy:0, ds:0},
+      //     age: 1, hits: 1, misses: 0,
+      //     confirmed: false,
+      //     lastSeenTs: 0,
+      //     locked: false
+      //   })))
 
       let trks = trackerRef.current.update(dets, Date.now() / 1000);
-      // console.log(trks)
 
-     setTracks(prev => {
-      const lockedById = new Map(prev.map(p => [p.id, p.locked]));
-      return trks.map(t => ({
+      setTracks(prev => {
+        const lockedById = new Map(prev.map(p => [p.id, p.locked]));
+        return trks.map(t => ({
           ...t,
           locked: lockedById.get(t.id) ?? false,
         })).filter(t => t.confirmed);
-    });
+      });
 
     } catch (e: any) {
       console.warn('runSync failed:', e?.message ?? e);
@@ -251,21 +232,21 @@ export default function ReceiverScreen({ navigation }: Props) {
     }
   }, [viewShotRef]);
 
-
-useEffect(() => {
-  let intervalId = null;
-  if (detectionEnabled) {
-    intervalId = setInterval(() => {
-      tick().catch(console.error);
-    }, 25);
-  }
-  return () => {
-    if (intervalId) {
-      clearInterval(intervalId);
-      setTracks([]);
+  // run the object detection when detectionEnabled is true
+  useEffect(() => {
+    let intervalId = null;
+    if (detectionEnabled) {
+      intervalId = setInterval(() => {
+        tick().catch(console.error);
+      }, 25);
     }
-  };
-}, [detectionEnabled, tick]);
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        setTracks([]);
+      }
+    };
+  }, [detectionEnabled, tick]);
 
 
   const handleControllerCommand = async (cmd: string, value?: any) => {
@@ -281,8 +262,17 @@ useEffect(() => {
         return;
       }
       setZoom(value)
+    } else if (cmd == 'setDetection') {
+      setDetectionEnabled(old => value ?? !old);
+    } else if (cmd == 'toggleLockedTrack') {
+      setTracks((prev:any) =>
+                prev.map((tr:any) => ({
+                    ...tr,
+                    locked: tr.id === value ? !tr.locked : false,
+                }))
+            );
     } else {
-      console.error('ERROR in ReceiverScreen: Unrecognized controller command!')
+      console.error('ERROR in ReceiverScreen: Unrecognized controller command!');
     }
   }
 
@@ -317,28 +307,27 @@ useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <>
-        <TouchableOpacity
-              style={{
-                backgroundColor: 'lightgray',
-                paddingHorizontal: 4,
-                paddingVertical: 4,
-                borderRadius: 4,
-                marginRight:4
-              }}
-              onPress={() => {
-                console.log('detection changed: ', detectionEnabled)
-                setDetectionEnabled(old => {
-                  return !old
-                })
-              }}
-              activeOpacity={0.7}
-            >
+          <TouchableOpacity
+            style={{
+              backgroundColor: 'lightgray',
+              paddingHorizontal: 4,
+              paddingVertical: 4,
+              borderRadius: 4,
+              marginRight: 4
+            }}
+            onPress={() => {
+              sendCommand('setDetection', !detectionEnabled);
+              setDetectionEnabled(old => {
+                return !old
+              })
+            }}
+            activeOpacity={0.7}
+          >
             <Image
-                source={detectionEnabled ? require('./assets/detection_enabled.png') : require('./assets/detection_disabled.png')}
-                style={{ width: 25, height: 25, resizeMode: 'contain' }}
-              />
+              source={detectionEnabled ? require('./assets/detection_enabled.png') : require('./assets/detection_disabled.png')}
+              style={{ width: 25, height: 25, resizeMode: 'contain' }}
+            />
           </TouchableOpacity>
-
           <TouchableOpacity
             style={{
               backgroundColor: camSide === 'back' ? '#2080ee' : '#cccc66',
@@ -363,170 +352,65 @@ useEffect(() => {
           </TouchableOpacity>
         </>
       ),
-      })
+    })
   }, [navigation, camSide, detectionEnabled]);
 
 
-return (
-  <View style={styles.container}>
-    {stream ? (
-      <>
-      <View
-      ref={viewShotRef}
-      style={{
-        width:  320,
-        height: 320,
-        position: 'absolute',
-        left: -9999, top: -9999,
-        backgroundColor: 'black',
-        overflow: 'hidden',
-      }}
-    >
-      <RTCView
-        style={StyleSheet.absoluteFill}
-        streamURL={stream.toURL()}
-        objectFit="contain"
-      />
-    </View>
+  return (
+    <View style={styles.container}>
+      {stream ? (
+        <>
+          <View
+            ref={viewShotRef}
+            style={{
+              width: 320,
+              height: 320,
+              position: 'absolute',
+              left: -9999, top: -9999,
+              backgroundColor: 'black',
+              overflow: 'hidden',
+            }}
+          >
+            <RTCView
+              style={StyleSheet.absoluteFill}
+              streamURL={stream.toURL()}
+              objectFit="contain"
+            />
+          </View>
 
-    <View
-        collapsable={false}
-        onLayout={onLayout}
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-          transform: [{ scale: zoom }],
-        }}
-      >
-        <RTCView
-          style={StyleSheet.absoluteFill}
-          streamURL={stream.toURL()}
-          objectFit="cover"
-        />
+          <View
+            collapsable={false}
+            onLayout={onLayout}
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              transform: [{ scale: zoom }],
+            }}
+          >
+            <RTCView
+              style={StyleSheet.absoluteFill}
+              streamURL={stream.toURL()}
+              objectFit="cover"
+            />
 
-        <View style={[StyleSheet.absoluteFill, { zIndex: 10 }]}>
-          {tracks.map((t: any) => {
-            const left = t.box.xmin * sizeRef.current.w;
-            const top  = t.box.ymin * sizeRef.current.h;
-            const width  = (t.box.xmax - t.box.xmin) * sizeRef.current.w;
-            const height = (t.box.ymax - t.box.ymin) * sizeRef.current.h;
-            
-            let cornerLines = [];
-            if(t.locked) {
-              let segments = [
-                [[left, top], [lockBox.xmin, lockBox.ymin]],  // top-left
-                [[left+width, top], [lockBox.xmax, lockBox.ymin]],  // top-right
-                [[left, top+height], [lockBox.xmin, lockBox.ymax]],  // bot-left
-                [[left+width, top+height], [lockBox.xmax, lockBox.ymax]]  // bot-right
-              ]
+            <ObjectBoxes 
+              tracks={tracks} 
+              sizeRef={sizeRef}
+              setTracks={setTracks}
+              sendCommand={sendCommand}
+              isReceiver={true}
+            />
+          </View>
+        </>
 
-              for (const pair of segments){
-                let [a, b] = pair
-                let [ax, ay] = a
-                let [bx, by] = b
-
-                const dx = bx - ax;
-                const dy = by - ay;
-                const L  = Math.hypot(dx, dy);
-                const ang = Math.atan2(dy, dx);
-
-                const tpx = 2;
-                const midX = (ax + bx) / 2;
-                const midY = (ay + by) / 2;
-
-                const snappedLeft = Math.round(midX - L / 2);
-                const snappedTop  = Math.round(midY - tpx / 2);
-
-                cornerLines.push({snappedLeft, snappedTop, ang, L, 'id':pair.toString()})
-              }
-            }
-
-            return (
-              <React.Fragment key={t.id}>
-                <Pressable
-                  onLongPress={() => handleTrackLongPress(t)}
-                  hitSlop={8}
-                  style={{
-                    position: 'absolute',
-                    left, top, width, height,
-                    borderWidth: t.locked ? 3 : 2,
-                    borderColor: t.locked ? '#ff3b30' : '#00e913',
-                    borderStyle: 'solid',
-                  }}
-                />
-
-                  {t.locked && (
-                  <>
-                    <View
-                    pointerEvents="none"
-                    style={{
-                      position: 'absolute',
-                      left:lockBox.xmin,
-                      top:lockBox.ymin,
-                      width:lockBox.xmax - lockBox.xmin,
-                      height:lockBox.ymax - lockBox.ymin,
-                      borderWidth: 2,
-                      borderColor: '#8b0700ff',
-                      borderStyle: 'dashed',
-                    }}
-                  />
-
-                  {cornerLines.map((line: any) => {
-                    return(
-                  <View
-                    key={line.id}
-                    pointerEvents="none"
-                    style={{
-                      position: 'absolute',
-                      left: line.snappedLeft,
-                      top:  line.snappedTop,
-                      width: Math.max(1, Math.round(line.L as number)),
-                      height: 0,
-                      borderWidth: 1,
-                      borderColor: '#8b0700ff', 
-                      borderStyle: 'dashed',
-                      transform: [{ rotateZ: `${line.ang}rad`}],
-                    }}
-                  />
-                )})}
-                </>
-                )}
-
-                <View
-                  pointerEvents="none"
-                  style={[
-                    styles.tagRow,
-                    { position: 'absolute', left, top: top - 15, maxWidth: Math.max(0, sizeRef.current.w - left - 4) }
-                  ]}
-                >
-                  <Text numberOfLines={1} ellipsizeMode="clip" style={styles.tagText}>
-                    {t.label} {(t.label_conf * 100).toFixed(0)}%
-                  </Text>
-
-                  {t.locked && (
-                    <Image
-                      source={require('./assets/lock.png')}
-                      style={{ width: 15, height: 15, marginLeft: 4, resizeMode: 'contain' }}
-                    />
-                  )}
-                </View>
-
-                
-              </React.Fragment>
-            );
-          })}
+      ) : (
+        <View style={styles.loading}>
+          <Text style={styles.loadingText}>Loading camera…</Text>
         </View>
+      )}
     </View>
-    </>
-
-    ) : (
-      <View style={styles.loading}>
-        <Text style={styles.loadingText}>Loading camera…</Text>
-      </View>
-    )}
-  </View>
-);
+  );
 }
 
 const styles = StyleSheet.create({
@@ -540,19 +424,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'black',
   },
-  loadingText: { color: 'white', fontSize: 24 },
-  tagRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-    height: 16,
-    borderRadius: 2,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  tagText: {
-    color: 'white',
-    fontSize: 12,
-    flexShrink: 1,             
-    includeFontPadding: false, 
-  },
+  loadingText: { color: 'white', fontSize: 24 }
 })
