@@ -1,37 +1,106 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Image, StyleSheet, Pressable, Vibration } from 'react-native'
 import { Box, Det, Track } from './types.tsx'
+import { convertBoxToPixels } from './tracker.tsx'
 
 type ObjectBoxesProps = {
-  tracks: Track[];
-  sizeRef: any;
-  setTracks: any;
-  sendCommand: any;
-  isReceiver: boolean;
+    tracks: Track[];
+    setTracks: any;
+    lockBox: any;
+    setLockBox: any;
+    sizeRef: any;
+    sendCommand: any;
+    sendToESP: any;
+    isReceiver: boolean;
 };
 
 
-export default function ObjectBoxes({tracks, sizeRef, setTracks, sendCommand, isReceiver} : ObjectBoxesProps) {
-  const [lockBox, setLockBox] = useState<any>(null);
+export default function ObjectBoxes({ tracks, setTracks, lockBox, setLockBox, sizeRef, sendCommand, sendToESP, isReceiver }: ObjectBoxesProps) {
+    interface PIDControllerState {
+        integral: number;
+        lastError: number;
+    }
+
+    // Reusable PID calculation function
+    function calculatePIDOutput(
+        error: number,
+        state: PIDControllerState,
+        gains: { Kp: number; Ki: number; Kd: number },
+        dt: number
+    ): number {
+        state.integral += error * dt;
+        const derivative = (error - state.lastError) / dt;
+        state.lastError = error;
+
+        const output = (gains.Kp * error) + (gains.Ki * state.integral) + (gains.Kd * derivative);
+        return output;
+    }
+
+    const pidStateYaw: PIDControllerState = { integral: 0, lastError: 0 };
+    const yawGains = { Kp: 0.0000001, Ki: 0, Kd: 0.000000001 };
+    let lastTimestamp = Date.now();
+
+    // Main function to update the robot's movement based on object tracking.
+    function updateRobotFromObjectLock(originalBox: Box, currentBox: Box) {
+        // Calculate time delta (dt) for PID calculations
+        const now = Date.now();
+        const dt = (now - lastTimestamp) / 1000.0; // in seconds
+        lastTimestamp = now;
+
+
+        // Calculate the box centers and error
+        const originalCenterX = (originalBox.xmin + originalBox.xmax) / 2;
+        const currentCenterX = (currentBox.xmin + currentBox.xmax) / 2;
+        let errorX = originalCenterX - currentCenterX;
+
+        // Add a deadzone to add tolerance and not constantly move
+        if (Math.abs(errorX) < 25) errorX = 0;
+
+        // Get the PID output
+        let yawOutput = calculatePIDOutput(errorX, pidStateYaw, yawGains, dt);
+
+
+        // Translate PID outputs into motor and servo commands
+        if (yawOutput < 0) {
+            yawOutput = (yawOutput) - 80;
+        } else if (yawOutput > 0) {
+            yawOutput = (yawOutput) + 80;
+        }
+        let l = -yawOutput
+        let r = yawOutput
+
+        const PULSE_DURATION_MS = 50;
+        const SMALL_ERROR_THRESHOLD = 200;
+
+        if ((Math.abs(yawOutput) > 0) && (Math.abs(yawOutput) < SMALL_ERROR_THRESHOLD)) {
+            // For small errors, send a short pulse of minimum power
+            sendToESP('m', { 'l': l, 'r': r });
+
+            setTimeout(() => {
+                sendToESP('m', { 'l': 0, 'r': 0 });
+                sendToESP('m', { 'l': 0, 'r': 0 });
+            }, PULSE_DURATION_MS);
+
+        } else if (Math.abs(yawOutput) >= SMALL_ERROR_THRESHOLD) {
+            // large errors continuously move until the next frame is ready
+            sendToESP('m', { 'l': l, 'r': r });
+        }
+    }
 
 
     function handleTrackLongPress(t: Track) {
         if (!t.locked) {
             Vibration.vibrate();
-            setLockBox({
-                'xmin': t.box.xmin * sizeRef.current.w,
-                'ymin': t.box.ymin * sizeRef.current.h,
-                'xmax': t.box.xmax * sizeRef.current.w,
-                'ymax': t.box.ymax * sizeRef.current.h,
-            });
+            setLockBox(convertBoxToPixels(t.box, sizeRef));
         } else {
             setLockBox(null);
+            sendToESP('m', { 'l': 0, 'r': 0 });
         }
 
         if (isReceiver) {
             // Update tracks so that they all have locked=false, and flip the track that was pressed
-            setTracks((prev:any) =>
-                prev.map((tr:any) => ({
+            setTracks((prev: any) =>
+                prev.map((tr: any) => ({
                     ...tr,
                     locked: tr.id === t.id ? !t.locked : false,
                 }))
@@ -41,19 +110,28 @@ export default function ObjectBoxes({tracks, sizeRef, setTracks, sendCommand, is
         }
     }
 
+    // updates that need to be done every object detection frame
     useEffect(() => {
-        if(tracks.some(t=>t.locked) && !lockBox){
-            let t = tracks.find(t=>t.locked);
-            if(t){
-                setLockBox({
-                'xmin': t.box.xmin * sizeRef.current.w,
-                'ymin': t.box.ymin * sizeRef.current.h,
-                'xmax': t.box.xmax * sizeRef.current.w,
-                'ymax': t.box.ymax * sizeRef.current.h,
-                });
+        let t = tracks.find(t => t.locked);
+        if (t) {
+            if (lockBox) {
+                if (!isReceiver) {
+                    // PID movement control
+                    updateRobotFromObjectLock(lockBox, convertBoxToPixels(t.box, sizeRef));
+                }
+            } else {
+                if (t) {
+                    setLockBox({
+                        'xmin': t.box.xmin * sizeRef.current.w,
+                        'ymin': t.box.ymin * sizeRef.current.h,
+                        'xmax': t.box.xmax * sizeRef.current.w,
+                        'ymax': t.box.ymax * sizeRef.current.h,
+                    });
+                }
             }
+        } else {
+            if (lockBox) setLockBox(null);
         }
-        
     }, [tracks])
 
     return (
@@ -175,19 +253,19 @@ export default function ObjectBoxes({tracks, sizeRef, setTracks, sendCommand, is
 }
 
 const styles = StyleSheet.create({
-  tagRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-    height: 16,
-    borderRadius: 2,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  tagText: {
-    color: 'white',
-    fontSize: 12,
-    flexShrink: 1,
-    includeFontPadding: false,
-  },
+    tagRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 4,
+        height: 16,
+        borderRadius: 2,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+    },
+    tagText: {
+        color: 'white',
+        fontSize: 12,
+        flexShrink: 1,
+        includeFontPadding: false,
+    },
 
 })

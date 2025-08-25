@@ -7,9 +7,10 @@ import { mediaDevices, RTCView } from 'react-native-webrtc';
 import { useESP } from './ESPContext';
 import { RootStackParamList, Box, Det, Track } from './types';
 import useEmitterRTC from './EmitterRTC';
-import { GreedyTracker} from './tracker';
+import { GreedyTracker, convertBoxToPixels } from './tracker';
 
 import ObjectBoxes from './ObjectBoxes'
+
 
 import RNFS from 'react-native-fs';
 
@@ -49,6 +50,8 @@ const pc = new RTCPeerConnection({
 export default function ReceiverScreen({ navigation }: Props) {
   const trackerRef = useRef(new GreedyTracker());
   const [tracks, setTracks] = useState<Track[]>([]);
+  const [lockBox, setLockBox] = useState<any>(null);
+
   const viewShotRef = useRef<View>(null);
   const [detectionEnabled, setDetectionEnabled] = useState<boolean>(false);
 
@@ -82,7 +85,7 @@ export default function ReceiverScreen({ navigation }: Props) {
     streamRef.current = stream;
   }, [stream]);
 
-  useEffect(()=>{
+  useEffect(() => {
     sendCommand('updateTracks', tracks)
   }, [tracks])
 
@@ -215,7 +218,9 @@ export default function ReceiverScreen({ navigation }: Props) {
       //     locked: false
       //   })))
 
-      let trks = trackerRef.current.update(dets, Date.now() / 1000);
+      let trks = trackerRef.current.update(dets, Date.now() / 1000, sendToESP);
+
+      // console.log(trks)
 
       setTracks(prev => {
         const lockedById = new Map(prev.map(p => [p.id, p.locked]));
@@ -265,12 +270,17 @@ export default function ReceiverScreen({ navigation }: Props) {
     } else if (cmd == 'setDetection') {
       setDetectionEnabled(old => value ?? !old);
     } else if (cmd == 'toggleLockedTrack') {
-      setTracks((prev:any) =>
-                prev.map((tr:any) => ({
-                    ...tr,
-                    locked: tr.id === value ? !tr.locked : false,
-                }))
-            );
+      const targetTrack = tracks.find(tr => tr.id === value);
+      if(targetTrack && targetTrack.locked) {
+        setLockBox(convertBoxToPixels(targetTrack.box, sizeRef));
+      }
+      
+      setTracks((prev: any) =>
+        prev.map((tr: any) => ({
+          ...tr,
+          locked: tr.id === value ? !tr.locked : false,
+        }))
+      );
     } else {
       console.error('ERROR in ReceiverScreen: Unrecognized controller command!');
     }
@@ -394,11 +404,14 @@ export default function ReceiverScreen({ navigation }: Props) {
               objectFit="cover"
             />
 
-            <ObjectBoxes 
-              tracks={tracks} 
-              sizeRef={sizeRef}
+            <ObjectBoxes
+              tracks={tracks}
               setTracks={setTracks}
+              lockBox={lockBox}
+              setLockBox={setLockBox}
+              sizeRef={sizeRef}
               sendCommand={sendCommand}
+              sendToESP={sendToESP}
               isReceiver={true}
             />
           </View>

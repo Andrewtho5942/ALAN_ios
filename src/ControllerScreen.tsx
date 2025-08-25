@@ -19,6 +19,7 @@ import Animated, {
 import Joystick from './Joystick'
 import VerticalSlider from './VerticalSlider'
 import ObjectBoxes from './ObjectBoxes'
+import { convertBoxToPixels } from './tracker';
 
 import { RootStackParamList, Track, Det, Box } from './types';
 import { useESP } from './ESPContext';
@@ -37,6 +38,7 @@ export default function ControllerScreen({ navigation }: Props) {
   const [detectionEnabled, setDetectionEnabled] = useState<boolean>(false);
   const sizeRef = useRef({ w: 0, h: 0 });
   const [tracks, setTracks] = useState<Track[]>([]);
+  const [lockBox, setLockBox] = useState<any>(null);
 
 
   const [remoteStream, setRemoteStream] = useState<any>(null);
@@ -91,7 +93,7 @@ export default function ControllerScreen({ navigation }: Props) {
       setDetectionEnabled(old => value ?? !old)
     } else if (cmd == 'updateTracks') {
       setTracks(value);
-    }  else {
+    } else {
       console.error(`ERROR in ControllerScreen: Unrecognized controller command of ${cmd}`)
     }
   }
@@ -230,6 +232,7 @@ export default function ControllerScreen({ navigation }: Props) {
               marginRight: 4
             }}
             onPress={() => {
+              if(detectionEnabled) setTracks([]);
               sendCommand('setDetection', !detectionEnabled);
               setDetectionEnabled(old => {
                 return !old
@@ -315,9 +318,12 @@ export default function ControllerScreen({ navigation }: Props) {
 
             <ObjectBoxes
               tracks={tracks}
-              sizeRef={sizeRef}
               setTracks={setTracks}
+              lockBox={lockBox}
+              setLockBox={setLockBox}
+              sizeRef={sizeRef}
               sendCommand={sendCommand}
+              sendToESP={sendToESP}
               isReceiver={false}
             />
           </View>
